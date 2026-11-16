@@ -1,4 +1,6 @@
 :root {
+  /* 원래부터 어두운 화면임을 브라우저에 알려서, 휴대폰 다크모드가 색을 임의로 바꾸지 않게 함 */
+  color-scheme: dark;
   --ink: #f6fbff;
   --muted: rgba(231, 244, 255, 0.68);
   --line: rgba(218, 242, 255, 0.2);
@@ -16,6 +18,13 @@
   --font-mono: "JetBrains Mono", "IBM Plex Sans KR", ui-monospace, monospace;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* 다크모드를 지원하는 사이트로 인식되도록 명시 (Samsung Internet 등) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
 }
 
 * {
