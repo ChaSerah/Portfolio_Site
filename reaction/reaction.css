@@ -884,3 +884,67 @@ h2,
     display: none;
   }
 }
+
+/* ---------- canvas 프레임 모드 (frames.js 동작 시) ----------
+   삼성 인터넷 다크모드가 CSS 색을 바꾸는 것을 피하려고, 프레임·태그·점은 canvas(.fx)가 그림 */
+.fx {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.has-fx .btn-start::before,
+.has-fx .btn-start::after,
+.has-fx .btn-qr::before,
+.has-fx .btn-qr::after,
+.has-fx .inp::before,
+.has-fx .inp::after,
+.has-fx .rounds label i::before {
+  content: none;
+}
+
+.has-fx .btn-start .bar,
+.has-fx .btn-start .node,
+.has-fx .btn-qr .bar {
+  display: none;
+}
+
+.has-fx .setup .btn-start,
+.has-fx .inp:focus-within {
+  filter: none;
+}
+
+.has-fx .btn-start .lbl,
+.has-fx .inp .tag {
+  color: transparent;
+}
+
+.has-fx .rounds label i,
+.has-fx .rounds input:checked + i {
+  background: none;
+  clip-path: none;
+}
+
+.has-fx .rounds label i {
+  position: relative;
+}
+
+.has-fx .rounds label i {
+  z-index: 0;
+}
+
+.has-fx .field > span {
+  position: relative;
+}
+
+.has-fx .field > span::before {
+  background: transparent;
+}
+
+.has-fx .rounds label i {
+  isolation: isolate;
+}
+
+.rounds label i > .fx {
+  z-index: -1;
+}
