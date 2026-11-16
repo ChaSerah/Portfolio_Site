@@ -22,21 +22,12 @@
     if (id === "qr") renderQr();
   }
 
-  // ---------------------------------------------------------------- 저장된 닉네임
-  function loadNames() {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-    } catch {
-      return {};
-    }
-  }
-
-  function saveNames(p1, p2) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ p1, p2 }));
-    } catch {
-      /* 저장 불가 환경은 무시 */
-    }
+  // ---------------------------------------------------------------- 닉네임은 기억하지 않음
+  // 예전 버전이 저장해 둔 닉네임이 있으면 지움 (매번 빈 입력칸으로 시작)
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* 저장소를 쓸 수 없는 환경은 무시 */
   }
 
   // ---------------------------------------------------------------- 게임 상태
@@ -380,9 +371,6 @@
 
   // ---------------------------------------------------------------- 이벤트
   const form = $("#setup-form");
-  const stored = loadNames();
-  if (stored.p1) $("#name-p1").value = stored.p1;
-  if (stored.p2) $("#name-p2").value = stored.p2;
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -394,7 +382,6 @@
     if (p1.toLowerCase() === p2.toLowerCase()) return (err.textContent = "서로 다른 닉네임을 사용해주세요.");
     err.textContent = "";
     document.activeElement?.blur();
-    saveNames(p1, p2);
     const rounds = Number(new FormData(form).get("rounds")) || 5;
     startGame([p1, p2], rounds);
   });
@@ -429,9 +416,10 @@
     if (document.visibilityState === "visible" && game && current === "game") keepAwake();
   });
 
-  // 어떤 기기에서 열어도 닉네임 입력(홈) 화면부터 시작. QR 화면은 "QR 공유" 버튼이나 ?qr 주소로 열기
+  // PC(마우스 환경)에서 열면 QR 화면을 먼저 보여준다. ?qr=1 로 강제 가능
   const params = new URLSearchParams(location.search);
-  if (params.has("qr")) {
+  const isDesktop = matchMedia("(hover: hover) and (pointer: fine)").matches && navigator.maxTouchPoints === 0;
+  if (params.has("qr") || (isDesktop && !params.has("play"))) {
     window.addEventListener("load", () => show("qr"));
   }
 })();
