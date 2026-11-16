@@ -343,7 +343,34 @@
       const qr = window.qrcode(0, "M");
       qr.addData(url);
       qr.make();
-      box.innerHTML = qr.createSvgTag({ cellSize: 8, margin: 0, scalable: true });
+      // canvas로 그림: 삼성 인터넷 다크모드가 흰 바탕을 뒤집어 QR이 안 찍히는 일을 막음
+      const n = qr.getModuleCount();
+      const size = 600;
+      const cut = 34;
+      const margin = 40;
+      const c = document.createElement("canvas");
+      c.width = c.height = size;
+      c.setAttribute("role", "img");
+      c.setAttribute("aria-label", "게임 주소 QR 코드");
+      const x = c.getContext("2d");
+      x.fillStyle = "#ffffff";
+      x.beginPath();
+      x.moveTo(cut, 0);
+      x.lineTo(size, 0);
+      x.lineTo(size, size - cut);
+      x.lineTo(size - cut, size);
+      x.lineTo(0, size);
+      x.lineTo(0, cut);
+      x.closePath();
+      x.fill();
+      const cell = (size - margin * 2) / n;
+      x.fillStyle = "#000000";
+      for (let r = 0; r < n; r++) {
+        for (let k = 0; k < n; k++) {
+          if (qr.isDark(r, k)) x.fillRect(Math.floor(margin + k * cell), Math.floor(margin + r * cell), Math.ceil(cell), Math.ceil(cell));
+        }
+      }
+      box.append(c);
       box.dataset.url = url;
     } else {
       box.textContent = "QR을 만들지 못했어요. 아래 주소로 접속하세요.";

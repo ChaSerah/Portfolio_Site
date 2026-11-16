@@ -1,15 +1,17 @@
-// 버튼·입력칸·라운드 선택의 프레임을 canvas로 그림.
+// 버튼·입력칸·패널·카드의 C 스타일 프레임을 canvas로 그림.
 // 삼성 인터넷 다크모드는 CSS 색(테두리·배경·글자)을 임의로 어둡게 바꾸지만 canvas 내용은 그대로 두기 때문.
 // 이 스크립트가 동작하면 <html>에 has-fx 클래스가 붙고, CSS 쪽 프레임은 숨겨짐.
 (() => {
   const AQUA = "#58d5f2";
   const PINK = "#ff8fb7";
   const VIOLET = "#a77bff";
-  const items = [];
+  const renders = [];
 
   const dprOf = () => Math.min(window.devicePixelRatio || 1, 3);
 
   function mount(el, pad, draw) {
+    if (el.dataset.fx) return null;
+    el.dataset.fx = "1";
     const c = document.createElement("canvas");
     c.className = "fx";
     c.setAttribute("aria-hidden", "true");
@@ -18,6 +20,7 @@
     c.style.height = `calc(100% + ${pad * 2}px)`;
     el.prepend(c);
     const render = () => {
+      if (!el.isConnected) return;
       const w = el.offsetWidth;
       const h = el.offsetHeight;
       if (!w || !h) return;
@@ -29,7 +32,7 @@
       x.clearRect(-pad, -pad, w + pad * 2, h + pad * 2);
       draw(x, w, h, el);
     };
-    items.push(render);
+    renders.push(render);
     return render;
   }
 
@@ -39,18 +42,22 @@
     x.closePath();
   };
 
-  function frame(x, pts, { fill, stroke, glow }) {
+  function frame(x, pts, { fill, tint, stroke, glow, lw = 1.5 }) {
     poly(x, pts);
     x.fillStyle = fill;
     x.fill();
+    if (tint) {
+      x.fillStyle = tint;
+      x.fill();
+    }
     x.save();
     if (glow) {
       x.shadowColor = glow;
-      x.shadowBlur = 10;
+      x.shadowBlur = 12;
     }
     poly(x, pts);
     x.strokeStyle = stroke;
-    x.lineWidth = 1.5;
+    x.lineWidth = lw;
     x.stroke();
     x.restore();
   }
@@ -77,24 +84,24 @@
     x.fillText(str, cx, cy);
   }
 
-  // ---- 대결 시작 ----
-  const start = document.querySelector(".btn-start");
-  if (start) {
-    mount(start, 26, (x, w, h, el) => {
-      const i = 0.75;
-      frame(x, [[i, 10], [10, i], [w - 10, i], [w - i, 10], [w - i, h - i], [i, h - i]], {
-        fill: vGrad(x, h, "#121a3a", "#0a1226"),
-        stroke: hGrad(x, w, [[0, AQUA], [0.55, "#7f8cff"], [1, VIOLET]]),
-        glow: "rgba(127, 140, 255, 0.45)",
-      });
-      // 아래 보라 사선 줄무늬
-      const bw = w * 0.36;
-      x.fillStyle = "rgba(167, 123, 255, 0.9)";
-      for (let sx = w / 2 - bw / 2; sx < w / 2 + bw / 2 - 5; sx += 9) {
-        poly(x, [[sx + 2, h - 10], [sx + 7, h - 10], [sx + 5, h - 7], [sx, h - 7]]);
-        x.fill();
-      }
-      // 양옆 회로 노드
+  function stripes(x, cx, y, width, color) {
+    x.fillStyle = color;
+    for (let sx = cx - width / 2; sx < cx + width / 2 - 5; sx += 9) {
+      poly(x, [[sx + 2, y], [sx + 7, y], [sx + 5, y + 3], [sx, y + 3]]);
+      x.fill();
+    }
+  }
+
+  // ---- 주 버튼 (대결 시작 / 다시 대결 / 여기서 플레이) ----
+  function drawPrimary(x, w, h, el, { nodes = false } = {}) {
+    const i = 0.75;
+    frame(x, [[i, 10], [10, i], [w - 10, i], [w - i, 10], [w - i, h - i], [i, h - i]], {
+      fill: vGrad(x, h, "#121a3a", "#0a1226"),
+      stroke: hGrad(x, w, [[0, AQUA], [0.55, "#7f8cff"], [1, VIOLET]]),
+      glow: "rgba(127, 140, 255, 0.45)",
+    });
+    stripes(x, w / 2, h - 10, Math.min(w * 0.36, 140), "rgba(167, 123, 255, 0.9)");
+    if (nodes) {
       x.save();
       x.strokeStyle = "#7f8cff";
       x.lineWidth = 1.5;
@@ -113,78 +120,143 @@
         x.fill();
       });
       x.restore();
-      text(x, el.querySelector(".lbl"), "대결 시작", AQUA, w / 2, h / 2);
-    });
+    }
+    const label = el.querySelector(".lbl") || el;
+    text(x, label, el.dataset.label || label.textContent.trim(), AQUA, w / 2, h / 2 - (h > 50 ? 1 : 0));
   }
 
-  // ---- QR 공유 ----
-  const qr = document.querySelector(".btn-qr");
-  if (qr) {
-    mount(qr, 4, (x, w, h) => {
-      const i = 0.75;
-      frame(x, [[i, i], [w - i, i], [w - i, h - 12], [w - 10, h - i], [i, h - i]], {
-        fill: "#070c1c",
-        stroke: hGrad(x, w, [[0, "rgba(88, 213, 242, 0.45)"], [1, "rgba(167, 123, 255, 0.45)"]]),
-      });
-      x.fillStyle = "rgba(167, 123, 255, 0.7)";
-      x.fillRect(14, h - 7, 28, 2);
+  // ---- 보조 버튼 (QR 공유 / 처음으로 / 인쇄) ----
+  function drawGhost(x, w, h) {
+    const i = 0.75;
+    frame(x, [[i, i], [w - i, i], [w - i, h - 12], [w - 10, h - i], [i, h - i]], {
+      fill: "#070c1c",
+      stroke: hGrad(x, w, [[0, "rgba(88, 213, 242, 0.45)"], [1, "rgba(167, 123, 255, 0.45)"]]),
     });
+    x.fillStyle = "rgba(167, 123, 255, 0.7)";
+    x.fillRect(14, h - 7, 28, 2);
+  }
+
+  // ---- 큰 패널 (결과 / QR) ----
+  function drawPanel(x, w, h) {
+    const i = 0.75;
+    const c = 18;
+    frame(x, [[i, c], [c, i], [w - i, i], [w - i, h - c], [w - c, h - i], [i, h - i]], {
+      fill: "rgba(8, 12, 30, 0.92)",
+      stroke: hGrad(x, w, [[0, "rgba(88, 213, 242, 0.5)"], [1, "rgba(167, 123, 255, 0.5)"]]),
+    });
+    // 모서리 강조선
+    x.save();
+    x.lineCap = "round";
+    x.shadowBlur = 8;
+    x.lineWidth = 2.5;
+    x.shadowColor = AQUA;
+    x.strokeStyle = AQUA;
+    x.beginPath();
+    x.moveTo(i, c + 26);
+    x.lineTo(i, c);
+    x.lineTo(c, i);
+    x.lineTo(c + 40, i);
+    x.stroke();
+    x.shadowColor = VIOLET;
+    x.strokeStyle = VIOLET;
+    x.beginPath();
+    x.moveTo(w - i, h - c - 26);
+    x.lineTo(w - i, h - c);
+    x.lineTo(w - c, h - i);
+    x.lineTo(w - c - 40, h - i);
+    x.stroke();
+    x.restore();
+    stripes(x, w - 46, 8, 48, "rgba(167, 123, 255, 0.75)");
+  }
+
+  // ---- 결과 카드 ----
+  function drawCard(x, w, h, el) {
+    const p2 = el.classList.contains("p2");
+    const pc = p2 ? PINK : AQUA;
+    const soft = p2 ? "rgba(255, 143, 183, 0.55)" : "rgba(88, 213, 242, 0.55)";
+    const win = el.classList.contains("win");
+    const i = 0.75;
+    frame(x, [[i, i], [w - 12, i], [w - i, 12], [w - i, h - i], [8, h - i], [i, h - 8]], {
+      fill: "#0a0f22",
+      tint: p2 ? "rgba(255, 143, 183, 0.07)" : "rgba(88, 213, 242, 0.07)",
+      stroke: hGrad(x, w, [[0, win ? pc : soft], [1, win ? VIOLET : "rgba(167, 123, 255, 0.4)"]]),
+      glow: win ? pc : null,
+      lw: win ? 2 : 1.5,
+    });
+    if (win) {
+      x.fillStyle = pc;
+      x.fillRect(12, h - 5, 30, 2);
+    }
   }
 
   // ---- 이름 입력칸 ----
-  document.querySelectorAll(".inp").forEach((wrap) => {
-    const p2 = wrap.classList.contains("p2");
+  function drawInput(x, w, h, el) {
+    const p2 = el.classList.contains("p2");
     const pc = p2 ? PINK : AQUA;
     const pcSoft = p2 ? "rgba(255, 143, 183, 0.7)" : "rgba(88, 213, 242, 0.7)";
-    const tag = wrap.querySelector(".tag");
-    const render = mount(wrap, 12, (x, w, h, el) => {
-      const i = 0.75;
-      const focused = el.contains(document.activeElement) && document.activeElement.tagName === "INPUT";
-      frame(x, [[i, i], [w - 46, i], [w - 40, 6], [w - i, 6], [w - i, h - i], [10, h - i], [i, h - 10]], {
-        fill: vGrad(x, h, "#0c1230", "#080c1c"),
-        stroke: hGrad(x, w, [[0, focused ? pc : pcSoft], [1, focused ? "#8c5aff" : "rgba(140, 90, 255, 0.55)"]]),
-        glow: focused ? "rgba(140, 110, 255, 0.6)" : null,
-      });
-      if (tag) text(x, tag, tag.textContent, pc, w - 14, 12, "right", "top");
+    const i = 0.75;
+    const focused = document.activeElement?.tagName === "INPUT" && el.contains(document.activeElement);
+    frame(x, [[i, i], [w - 46, i], [w - 40, 6], [w - i, 6], [w - i, h - i], [10, h - i], [i, h - 10]], {
+      fill: vGrad(x, h, "#0c1230", "#080c1c"),
+      stroke: hGrad(x, w, [[0, focused ? pc : pcSoft], [1, focused ? "#8c5aff" : "rgba(140, 90, 255, 0.55)"]]),
+      glow: focused ? "rgba(140, 110, 255, 0.6)" : null,
     });
-    const input = wrap.querySelector("input");
-    input.addEventListener("focus", render);
-    input.addEventListener("blur", render);
-  });
+    const tag = el.querySelector(".tag");
+    if (tag) text(x, tag, tag.textContent, pc, w - 14, 12, "right", "top");
+  }
 
   // ---- 라운드 선택 ----
-  const roundBoxes = [...document.querySelectorAll(".rounds label i")];
-  const renderRounds = roundBoxes.map((box) =>
-    mount(box, 2, (x, w, h, el) => {
-      const on = el.previousElementSibling?.checked;
-      const i = 0.75;
-      frame(x, [[i, i], [w - i, i], [w - i, h - 8], [w - 8, h - i], [i, h - i]], {
-        fill: on ? "#141a40" : "#0a1024",
-        stroke: on ? "#8f8cff" : "rgba(127, 140, 255, 0.45)",
-        glow: on ? "rgba(143, 140, 255, 0.5)" : null,
-      });
-    })
-  );
-  document.querySelectorAll(".rounds input").forEach((r) => r.addEventListener("change", () => renderRounds.forEach((f) => f())));
+  function drawRound(x, w, h, el) {
+    const on = el.previousElementSibling?.checked;
+    const i = 0.75;
+    frame(x, [[i, i], [w - i, i], [w - i, h - 8], [w - 8, h - i], [i, h - i]], {
+      fill: on ? "#141a40" : "#0a1024",
+      stroke: on ? "#8f8cff" : "rgba(127, 140, 255, 0.45)",
+      glow: on ? "rgba(143, 140, 255, 0.5)" : null,
+    });
+  }
 
   // ---- 플레이어 색 점 ----
-  document.querySelectorAll(".field > span").forEach((span) => {
-    const pc = span.closest(".field-p2") ? PINK : AQUA;
-    mount(span, 2, (x, w, h) => {
-      x.fillStyle = pc;
-      x.beginPath();
-      x.arc(4.8, h / 2, 4.8, 0, Math.PI * 2);
-      x.fill();
-    });
-  });
+  function drawDot(x, w, h, el) {
+    x.fillStyle = el.closest(".field-p2") ? PINK : AQUA;
+    x.beginPath();
+    x.arc(4.8, h / 2, 4.8, 0, Math.PI * 2);
+    x.fill();
+  }
 
+  // 어떤 요소를 어떤 모양으로 그릴지
+  const rules = [
+    [".btn-start", 26, (x, w, h, el) => drawPrimary(x, w, h, el, { nodes: true })],
+    ["#result .btn-primary, #qr .btn-primary", 14, drawPrimary],
+    [".btn-qr, #result .btn-ghost, #qr .btn-ghost", 4, drawGhost],
+    [".panel", 14, drawPanel],
+    [".card", 14, drawCard],
+    [".inp", 12, drawInput],
+    [".rounds label i", 2, drawRound],
+    [".field > span", 2, drawDot],
+  ];
+
+  function scan() {
+    rules.forEach(([sel, pad, draw]) => document.querySelectorAll(sel).forEach((el) => mount(el, pad, draw)));
+  }
+
+  function renderAll() {
+    scan();
+    for (let k = renders.length - 1; k >= 0; k--) renders[k]();
+  }
+
+  scan();
   document.documentElement.classList.add("has-fx");
-
-  const renderAll = () => items.forEach((f) => f());
   renderAll();
   document.fonts?.ready.then(renderAll);
   addEventListener("resize", renderAll);
-  // 화면 전환 시(숨겨져 있던 요소가 보일 때) 다시 그림
+
+  // 입력칸 포커스, 라운드 변경, 화면 전환, 결과 카드 생성 시 다시 그림
+  document.addEventListener("focusin", renderAll);
+  document.addEventListener("focusout", () => requestAnimationFrame(renderAll));
+  document.addEventListener("change", renderAll);
   const mo = new MutationObserver(() => requestAnimationFrame(renderAll));
   document.querySelectorAll(".screen").forEach((s) => mo.observe(s, { attributes: true, attributeFilter: ["class"] }));
+  const cards = document.getElementById("result-cards");
+  if (cards) mo.observe(cards, { childList: true });
 })();

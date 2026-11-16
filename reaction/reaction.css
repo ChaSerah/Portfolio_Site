@@ -948,3 +948,52 @@ h2,
 .rounds label i > .fx {
   z-index: -1;
 }
+
+/* ---------- 결과·QR 화면 C 스타일 (canvas 프레임) ---------- */
+.fx {
+  z-index: -1;
+}
+
+.has-fx .panel,
+.has-fx .card,
+.has-fx #result .btn,
+.has-fx #qr .btn {
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.has-fx .panel {
+  backdrop-filter: none;
+}
+
+.has-fx #result .btn-primary,
+.has-fx #qr .btn-primary {
+  min-height: 3.4rem;
+  color: transparent;
+}
+
+.has-fx #result .btn-ghost,
+.has-fx #qr .btn-ghost {
+  min-height: 3.4rem;
+}
+
+.has-fx .card.win {
+  box-shadow: none;
+}
+
+/* QR: 흰 판은 canvas가 그림 */
+.has-fx .qr-box {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.qr-box canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
