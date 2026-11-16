@@ -11,6 +11,9 @@
   --wait-hi: #6e1426;
   --go: #19d47b;
   --foul: #f2a43a;
+  --font-display: "Chakra Petch", "IBM Plex Sans KR", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans KR", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Sans KR", ui-monospace, monospace;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -29,7 +32,7 @@ body {
   margin: 0;
   color: var(--ink);
   background: radial-gradient(120% 80% at 50% 0%, #0b2440 0%, var(--deep) 60%) fixed, var(--deep);
-  font-family: "Inter", "Noto Sans KR", system-ui, sans-serif;
+  font-family: var(--font-body);
   overscroll-behavior: none;
 }
 
@@ -65,7 +68,8 @@ h1 {
   font-size: clamp(3rem, 16vw, 5rem);
   font-weight: 900;
   line-height: 0.92;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
 }
 
 h2 {
@@ -468,6 +472,7 @@ h2 {
 
 .card .c-rank {
   margin: 0.4rem 0 0;
+  word-break: keep-all;
   font-size: 0.8rem;
   font-weight: 800;
 }
@@ -630,4 +635,45 @@ h2 {
   .qr-url {
     color: #000;
   }
+}
+
+/* ---------- 글꼴 역할 ----------
+   제목·점수·이름·영문 라벨: Chakra Petch (한글은 IBM Plex Sans KR로 대체 표시)
+   본문·안내 문구·버튼: IBM Plex Sans KR
+   반응속도 기록 숫자: JetBrains Mono */
+h1,
+h2,
+.kicker,
+.round-label,
+.rounds label i,
+.h-name,
+.h-msg,
+.h-score,
+.card .c-name,
+.board .r,
+.board .n b {
+  font-family: var(--font-display);
+}
+
+h1,
+h2,
+.h-msg {
+  font-weight: 700;
+}
+
+.h-time,
+.card .c-avg,
+.board .v,
+.round-table td,
+.qr-url {
+  font-family: var(--font-mono);
+}
+
+.card .c-avg small,
+.board .v small {
+  font-family: var(--font-body);
+}
+
+.round-table td:first-child {
+  font-family: var(--font-display);
 }
