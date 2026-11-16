@@ -108,6 +108,7 @@ button:focus-visible { outline: 3px solid var(--meaning); outline-offset: 3px; }
       <span class="small">제한 시간 45초 · 오답 시 -1초</span></p>
     <button class="primary" id="startBtn">시작하기</button>
     <div class="small" id="titleBest"></div>
+    <div class="small" id="fsHint">빈 곳을 누르면 전체화면 · 뒤로가기로 해제</div>
   </section>
 
   <section class="screen" id="game" hidden>
@@ -289,6 +290,31 @@ function end() {
   ].map(([k, v]) => `<div><span>${k}</span><span>${v}</span></div>`).join("");
   show("result");
 }
+
+// ─── 전체화면: 빈 곳 클릭 → 진입, 뒤로가기(또는 Esc) → 해제 ───
+const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+const fsSupported = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+function enterFullscreen() {
+  const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (!req || fsEl()) return;
+  // 전체화면 진입 시 히스토리를 하나 쌓아서, 뒤로가기가 페이지 이탈 대신 전체화면 해제가 되도록
+  const pushed = () => { try { history.pushState({ stroopFs: true }, ""); } catch (e) {} };
+  try { const p = req.call(el); p && p.then ? p.then(pushed, () => {}) : pushed(); } catch (e) {}
+}
+function exitFullscreen() {
+  const exit = document.exitFullscreen || document.webkitExitFullscreen;
+  if (!fsEl() || !exit) return;
+  try { const p = exit.call(document); p && p.catch && p.catch(() => {}); } catch (e) {}
+}
+document.addEventListener("click", e => { if (!e.target.closest("button")) enterFullscreen(); });
+window.addEventListener("popstate", () => { if (fsEl()) exitFullscreen(); });
+function onFsChange() {
+  // Esc 등 다른 방법으로 해제됐으면 쌓아둔 히스토리를 정리
+  if (!fsEl() && history.state && history.state.stroopFs) history.back();
+}
+document.addEventListener("fullscreenchange", onFsChange);
+document.addEventListener("webkitfullscreenchange", onFsChange);
+$("fsHint").hidden = !fsSupported;
 
 $("startBtn").addEventListener("click", start);
 $("retryBtn").addEventListener("click", start);
