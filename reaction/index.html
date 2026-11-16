@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./reaction.css?v=20261116-noframe" />
+    <link rel="stylesheet" href="./reaction.css?v=20261116-c" />
   </head>
   <body>
     <!-- 홈 -->
@@ -28,11 +28,17 @@
         <form class="setup" id="setup-form" autocomplete="off">
           <label class="field field-p2">
             <span>위쪽 플레이어</span>
-            <input id="name-p2" name="p2" maxlength="12" placeholder="닉네임" required />
+            <div class="inp p2">
+              <input id="name-p2" name="p2" maxlength="12" placeholder="닉네임 입력" required />
+              <b class="tag" aria-hidden="true">P2</b>
+            </div>
           </label>
           <label class="field field-p1">
             <span>아래쪽 플레이어</span>
-            <input id="name-p1" name="p1" maxlength="12" placeholder="닉네임" required />
+            <div class="inp p1">
+              <input id="name-p1" name="p1" maxlength="12" placeholder="닉네임 입력" required />
+              <b class="tag" aria-hidden="true">P1</b>
+            </div>
           </label>
           <div class="rounds" role="radiogroup" aria-label="라운드 수">
             <span>라운드</span>
@@ -41,11 +47,17 @@
             <label><input type="radio" name="rounds" value="7" /><i>7</i></label>
           </div>
           <p class="form-error" id="form-error" role="alert"></p>
-          <button class="btn btn-primary" type="submit">대결 시작</button>
+          <button class="btn btn-primary btn-start" type="submit">
+            <span class="lbl">대결 시작</span>
+            <i class="node l" aria-hidden="true"></i><i class="node r" aria-hidden="true"></i><i class="bar" aria-hidden="true"></i>
+          </button>
         </form>
 
         <div class="home-links">
-          <button class="btn btn-ghost" type="button" data-open="qr">QR 공유</button>
+          <button class="btn btn-ghost btn-qr" type="button" data-open="qr">
+            <span class="lbl">QR 공유</span>
+            <i class="bar" aria-hidden="true"></i>
+          </button>
         </div>
         <details class="rules">
           <summary>규칙</summary>
@@ -110,6 +122,7 @@
       </div>
     </section>
 
+    <script src="./circuit.js?v=20261116-c" defer></script>
     <script src="./vendor/qrcode.js" defer></script>
     <script src="./reaction.js?v=20261116-canvas2" defer></script>
   </body>

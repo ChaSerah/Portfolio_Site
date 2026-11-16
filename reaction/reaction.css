@@ -261,28 +261,6 @@ h2 {
   box-shadow: inset 0 0 0 1px rgba(88, 213, 242, 0.15), 0 0 18px rgba(88, 213, 242, 0.18);
 }
 
-/* 대결 시작 + QR 공유: 틈을 두고 이어진 한 쌍처럼 보이는 버튼
-   대결 시작은 위쪽 두 귀퉁이, QR 공유는 아래쪽 두 귀퉁이를 크게 둥글게 */
-.setup .btn-primary,
-.home-links .btn {
-  min-height: 3.4rem;
-  border-radius: 10px;
-}
-
-.setup .btn-primary {
-  border-top-left-radius: 1.7rem;
-  border-top-right-radius: 1.7rem;
-}
-
-.home-inner .home-links {
-  margin-top: 6px;
-}
-
-.home-links .btn {
-  border-bottom-left-radius: 1.7rem;
-  border-bottom-right-radius: 1.7rem;
-}
-
 .btn-ghost:active,
 .btn-primary:active {
   transform: scale(0.98);
@@ -660,4 +638,249 @@ h2,
 
 .round-table td:first-child {
   font-family: var(--font-display);
+}
+
+/* =========================================================
+   사이버펑크 스타일 (C 시안)
+   ========================================================= */
+
+/* ---------- 회로 배경 (circuit.js 가 그리는 canvas) ---------- */
+.circuit-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.6;
+  /* 글자·입력 영역(가운데)은 흐리게, 위아래 가장자리는 선명하게 */
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 17%, rgba(0, 0, 0, 0.3) 24%, rgba(0, 0, 0, 0.3) 78%, #000 90%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 17%, rgba(0, 0, 0, 0.3) 24%, rgba(0, 0, 0, 0.3) 78%, #000 90%);
+}
+
+.screen {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- 대결 시작 / QR 공유 버튼 ---------- */
+.setup .btn-start,
+.home-links .btn-qr {
+  --ln: linear-gradient(90deg, #58d5f2, #7f8cff 55%, #a77bff);
+  position: relative;
+  min-height: 3.6rem;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  isolation: isolate;
+}
+
+.setup .btn-start {
+  color: var(--aqua);
+  filter: drop-shadow(0 0 10px rgba(127, 140, 255, 0.35));
+}
+
+.btn-start .lbl,
+.btn-qr .lbl {
+  position: relative;
+  z-index: 2;
+  letter-spacing: 0.04em;
+}
+
+.btn-start::before,
+.btn-start::after,
+.btn-qr::before,
+.btn-qr::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* 대결 시작: 위쪽은 평평하고 양 끝 모서리만 깎음, 테두리는 하늘색→보라 그라데이션 */
+.btn-start::before {
+  background: var(--ln);
+  clip-path: polygon(0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+}
+
+.btn-start::after {
+  inset: 1.5px;
+  background: linear-gradient(180deg, #121a3a, #0a1226);
+  clip-path: polygon(0 9.4px, 9.4px 0, calc(100% - 9.4px) 0, 100% 9.4px, 100% 100%, 0 100%);
+}
+
+.btn-start .bar {
+  position: absolute;
+  bottom: 7px;
+  left: 50%;
+  z-index: 1;
+  width: 36%;
+  height: 3px;
+  transform: translateX(-50%);
+  background: repeating-linear-gradient(-55deg, #a77bff 0 5px, transparent 5px 9px);
+  opacity: 0.9;
+}
+
+/* 양옆으로 이어지는 회로 노드 */
+.btn-start .node {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  width: 22px;
+  height: 1.5px;
+  background: #7f8cff;
+}
+
+.btn-start .node::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b9a8ff;
+  box-shadow: 0 0 8px #a77bff;
+}
+
+.btn-start .node.l { left: -16px; }
+.btn-start .node.l::after { left: -4px; }
+.btn-start .node.r { right: -16px; }
+.btn-start .node.r::after { right: -4px; }
+
+/* QR 공유: 같은 그라데이션 테두리, 오른쪽 아래만 깎음 */
+.btn-qr::before {
+  background: linear-gradient(90deg, rgba(88, 213, 242, 0.45), rgba(167, 123, 255, 0.45));
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 10px) 100%, 0 100%);
+}
+
+.btn-qr::after {
+  inset: 1.5px;
+  background: #070c1c;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 11.4px), calc(100% - 9.4px) 100%, 0 100%);
+}
+
+.btn-qr .bar {
+  position: absolute;
+  bottom: 5px;
+  left: 14px;
+  z-index: 1;
+  width: 28px;
+  height: 2px;
+  background: rgba(167, 123, 255, 0.7);
+}
+
+.home-inner .home-links {
+  margin-top: 8px;
+}
+
+/* ---------- 이름 입력칸 ---------- */
+.inp {
+  --pc: var(--p1);
+  position: relative;
+  isolation: isolate;
+}
+
+.inp.p2 {
+  --pc: var(--p2);
+}
+
+.inp::before,
+.inp::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* 오른쪽 위에 작은 탭, 왼쪽 아래 모서리 깎음. 테두리는 플레이어 색→보라 */
+.inp::before {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--pc) 70%, transparent), rgba(140, 90, 255, 0.55));
+  clip-path: polygon(0 0, calc(100% - 46px) 0, calc(100% - 40px) 6px, 100% 6px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+
+.inp::after {
+  inset: 1.5px;
+  background: linear-gradient(180deg, #0c1230, #080c1c);
+  clip-path: polygon(0 0, calc(100% - 46.6px) 0, calc(100% - 40.6px) 6px, 100% 6px, 100% 100%, 9.4px 100%, 0 calc(100% - 9.4px));
+}
+
+.inp:focus-within {
+  filter: drop-shadow(0 0 8px rgba(140, 110, 255, 0.5));
+}
+
+.field .inp input {
+  position: relative;
+  z-index: 2;
+  min-height: 3.3rem;
+  padding: 0 3.2rem 0 1.25rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  caret-color: var(--pc);
+  letter-spacing: 0.02em;
+}
+
+.field .inp input:focus {
+  box-shadow: none;
+}
+
+.field .inp input::placeholder {
+  color: rgba(231, 244, 255, 0.28);
+  font-weight: 500;
+}
+
+.inp .tag {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  z-index: 3;
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  color: var(--pc);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* ---------- 라운드 선택 ---------- */
+.rounds label i {
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  border-radius: 0;
+  background: rgba(127, 140, 255, 0.45);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+}
+
+.rounds label i::before {
+  content: "";
+  position: absolute;
+  inset: 1.5px;
+  z-index: -1;
+  background: #0a1024;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7.4px), calc(100% - 7.4px) 100%, 0 100%);
+}
+
+.rounds input:checked + i {
+  background: #8f8cff;
+  color: #b9b0ff;
+}
+
+.rounds input:checked + i::before {
+  background: #141a40;
+}
+
+.rounds input:focus-visible + i {
+  outline: none;
+  filter: drop-shadow(0 0 6px #8f8cff);
+}
+
+@media print {
+  .circuit-canvas {
+    display: none;
+  }
 }
