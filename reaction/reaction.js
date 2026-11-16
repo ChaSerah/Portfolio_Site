@@ -429,10 +429,9 @@
     if (document.visibilityState === "visible" && game && current === "game") keepAwake();
   });
 
-  // PC(마우스 환경)에서 열면 QR 화면을 먼저 보여준다. ?qr=1 로 강제 가능
+  // 어떤 기기에서 열어도 닉네임 입력(홈) 화면부터 시작. QR 화면은 "QR 공유" 버튼이나 ?qr 주소로 열기
   const params = new URLSearchParams(location.search);
-  const isDesktop = matchMedia("(hover: hover) and (pointer: fine)").matches && navigator.maxTouchPoints === 0;
-  if (params.has("qr") || (isDesktop && !params.has("play"))) {
+  if (params.has("qr")) {
     window.addEventListener("load", () => show("qr"));
   }
 })();
