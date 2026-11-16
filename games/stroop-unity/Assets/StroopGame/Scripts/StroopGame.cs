@@ -30,10 +30,6 @@ namespace StroopMiniGame
             new StroopColor("파랑", Hex("#1E63D6")),
             new StroopColor("초록", Hex("#2E9E44")),
             new StroopColor("노랑", Hex("#F2B705")),
-            new StroopColor("보라", Hex("#8E3CC8")),
-            new StroopColor("검정", Hex("#222222")),
-            new StroopColor("주황", Hex("#F57C00")),
-            new StroopColor("분홍", Hex("#E8559B")),
         };
 
         private const string BestScoreKey = "StroopGame.BestScore";
@@ -47,6 +43,7 @@ namespace StroopMiniGame
         private static readonly Color MeaningBadge = Hex("#E8682B");
         private static readonly Color GoodColor = Hex("#2E9E44");
         private static readonly Color BadColor = Hex("#E53935");
+        private static readonly Color AnswerBarColor = Hex("#2B2B2B");
 
         // 런타임 상태
         private State state;
@@ -63,6 +60,9 @@ namespace StroopMiniGame
         private RectTransform titlePanel, gamePanel, resultPanel;
         private RectTransform timeFill, wordCard;
         private Image timeFillImage;
+        private RectTransform answerFill;
+        private Image answerFillImage;
+        private float answerTimeLimit;
         private Text scoreText, comboText, levelText, timeText;
         private Image instructionBadge;
         private Text instructionText, wordText, countdownText, feedbackText;
@@ -102,6 +102,16 @@ namespace StroopMiniGame
                 UpdateHud();
                 EndGame();
                 return;
+            }
+
+            // 문제당 제한 시간
+            if (!inputLocked && question != null)
+            {
+                float elapsed = Time.time - questionShownAt;
+                float remain = answerTimeLimit > 0f ? Mathf.Clamp01(1f - elapsed / answerTimeLimit) : 0f;
+                answerFill.anchorMax = new Vector2(remain, 1f);
+                answerFillImage.color = remain > 0.3f ? AnswerBarColor : BadColor;
+                if (elapsed >= answerTimeLimit) Resolve(false, elapsed);
             }
             UpdateHud();
         }
@@ -166,6 +176,9 @@ namespace StroopMiniGame
             bool ink = question.type == QuestionType.InkColor;
             instructionBadge.color = ink ? InkBadge : MeaningBadge;
             instructionText.text = ink ? "글자의 <b>색깔</b>을 고르세요" : "글자의 <b>뜻</b>을 고르세요";
+            answerTimeLimit = LevelSettings.For(level, palette.Count).answerTimeLimit;
+            answerFill.anchorMax = Vector2.one;
+            answerFillImage.color = AnswerBarColor;
 
             // 단어
             wordText.text = palette[question.wordIndex].name;
@@ -195,10 +208,13 @@ namespace StroopMiniGame
         {
             if (state != State.Playing || inputLocked || question == null) return;
             if (buttonIndex >= question.options.Length) return;
-            inputLocked = true;
+            Resolve(question.options[buttonIndex] == question.answerIndex, Time.time - questionShownAt);
+        }
 
-            float rt = Time.time - questionShownAt;
-            bool isCorrect = question.options[buttonIndex] == question.answerIndex;
+        /// <summary>정답/오답/시간 초과 처리</summary>
+        private void Resolve(bool isCorrect, float rt)
+        {
+            inputLocked = true;
 
             if (isCorrect)
             {
@@ -207,8 +223,7 @@ namespace StroopMiniGame
                 maxCombo = Mathf.Max(maxCombo, combo);
                 reactionSum += rt;
                 score += StroopScoring.ForCorrect(combo, rt);
-                int maxLevel = LevelSettings.MaxLevelFor(palette.Count);
-                level = Mathf.Min(maxLevel, 1 + correct / Mathf.Max(1, correctPerLevel));
+                level = Mathf.Min(LevelSettings.MaxLevel, 1 + correct / Mathf.Max(1, correctPerLevel));
                 ShowFeedback(true);
             }
             else
@@ -370,9 +385,8 @@ namespace StroopMiniGame
             sub.rectTransform.Anchor(0, 0.6f, 1, 0.65f);
 
             var rules = StroopUIFactory.CreateText("Rules", titlePanel, font,
-                "지시문을 잘 보고 답하세요!\n\n" +
-                "<b>색깔</b>  →  글자가 칠해진 색\n" +
-                "<b>뜻</b>  →  글자가 의미하는 색\n\n" +
+                "글자를 읽지 말고\n<b>글자가 칠해진 색깔</b>을 고르세요!\n\n" +
+                "레벨이 오를수록 답할 시간이 줄어요\n\n" +
                 $"제한 시간 {roundDuration:0}초 · 오답 시 -{wrongPenaltySeconds:0.#}초",
                 46, TextDark);
             rules.lineSpacing = 1.15f;
@@ -418,6 +432,12 @@ namespace StroopMiniGame
 
             // 단어 카드
             var cardHolder = StroopUIFactory.CreateRect("CardHolder", gamePanel).Anchor(0.08f, 0.44f, 0.92f, 0.69f);
+
+            // 문제당 남은 시간 바 (카드 아래)
+            var answerBg = StroopUIFactory.CreateImage("AnswerBarBg", gamePanel, Hex("#DDD7CB"));
+            answerBg.rectTransform.Anchor(0.08f, 0.412f, 0.92f, 0.424f);
+            answerFillImage = StroopUIFactory.CreateImage("AnswerBarFill", answerBg.transform, AnswerBarColor);
+            answerFill = answerFillImage.rectTransform.Stretch();
             var card = StroopUIFactory.CreateImage("WordCard", cardHolder, CardColor);
             wordCard = card.rectTransform.Stretch();
             var cardShadow = card.gameObject.AddComponent<Shadow>();

@@ -44,23 +44,28 @@ namespace StroopMiniGame
         public float meaningChance;     // "뜻" 문제가 나올 확률
         public float congruentChance;   // 단어와 잉크 색이 같을 확률
         public bool buttonInterference; // 버튼 글자에도 다른 색 입히기
+        public float answerTimeLimit;   // 한 문제에 답할 수 있는 시간(초)
 
-        public const int StartColorCount = 4;
+        // 고령자도 플레이할 수 있도록 색은 4가지 고정, "색깔" 문제만.
+        // 난이도는 문제당 답할 수 있는 시간으로만 조절: Lv.1 5초 → 레벨마다 -0.5초 → 최소 2초
+        public const int ColorCount = 4;
+        public const float StartAnswerTime = 5f;
+        public const float AnswerTimeStep = 0.5f;
+        public const float MinAnswerTime = 2f;
 
-        /// <summary>난이도는 색 개수로만 조절: Lv.1 = 4색, 레벨마다 +1색. 나머지 조건은 고정.</summary>
+        public static int MaxLevel => 1 + Mathf.RoundToInt((StartAnswerTime - MinAnswerTime) / AnswerTimeStep);
+
         public static LevelSettings For(int level, int paletteCount)
         {
             return new LevelSettings
             {
-                colorCount = Mathf.Clamp(StartColorCount + Mathf.Max(0, level - 1), 2, paletteCount),
-                meaningChance = 0.4f,
+                colorCount = Mathf.Clamp(ColorCount, 2, paletteCount),
+                meaningChance = 0f,
                 congruentChance = 0.2f,
                 buttonInterference = false,
+                answerTimeLimit = Mathf.Max(MinAnswerTime, StartAnswerTime - AnswerTimeStep * Mathf.Max(0, level - 1)),
             };
         }
-
-        /// <summary>팔레트 크기로 정해지는 최대 레벨</summary>
-        public static int MaxLevelFor(int paletteCount) => Mathf.Max(1, paletteCount - StartColorCount + 1);
     }
 
     /// <summary>문제 생성기 (MonoBehaviour와 분리된 순수 로직)</summary>

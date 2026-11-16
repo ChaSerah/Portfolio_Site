@@ -70,6 +70,8 @@ button:focus-visible { outline: 3px solid var(--meaning); outline-offset: 3px; }
 .overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; font-weight: 900; }
 #fb { font-size: 200px; opacity: 0; }
 #cd { font-size: 150px; color: var(--ink); }
+.qbar { height: 10px; background: var(--track); border-radius: 5px; overflow: hidden; flex: 0 0 auto; }
+.qbar i { display: block; height: 100%; width: 100%; background: var(--ink); transform-origin: left; }
 .options { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; flex: 0 0 auto; padding-bottom: 8px; }
 .opt {
   font: 900 30px var(--font); color: var(--ink); background: var(--card); border: 0; border-radius: 16px;
@@ -102,9 +104,8 @@ button:focus-visible { outline: 3px solid var(--meaning); outline-offset: 3px; }
   <section class="screen" id="title">
     <div class="logo" id="logo"></div>
     <div class="eyebrow">STROOP TEST</div>
-    <p class="rules">지시문을 잘 보고 답하세요!<br><br>
-      <b>색깔</b> → 글자가 칠해진 색<br>
-      <b class="m">뜻</b> → 글자가 의미하는 색<br><br>
+    <p class="rules">글자를 읽지 말고<br><b>글자가 칠해진 색깔</b>을 고르세요!<br><br>
+      레벨이 오를수록 답할 시간이 줄어요<br><br>
       <span class="small">제한 시간 45초 · 오답 시 -1초</span></p>
     <button class="primary" id="startBtn">시작하기</button>
     <div class="small" id="titleBest"></div>
@@ -121,6 +122,7 @@ button:focus-visible { outline: 3px solid var(--meaning); outline-offset: 3px; }
       <div class="overlay" id="fb"></div>
       <div class="overlay" id="cd"></div>
     </div>
+    <div class="qbar" id="qbarWrap" hidden><i id="qbar"></i></div>
     <div class="options" id="options" hidden></div>
   </section>
 
@@ -138,18 +140,18 @@ button:focus-visible { outline: 3px solid var(--meaning); outline-offset: 3px; }
 // ─── Same rules as StroopLogic.cs ───
 const PALETTE = [
   ["빨강", "#E53935"], ["파랑", "#1E63D6"], ["초록", "#2E9E44"],
-  ["노랑", "#F2B705"], ["보라", "#8E3CC8"], ["검정", "#222222"],
-  ["주황", "#F57C00"], ["분홍", "#E8559B"],
+  ["노랑", "#F2B705"],
 ];
-const START_COLORS = 4;
-const ROUND = 45, PENALTY = 1, PER_LEVEL = 5, MAX_LEVEL = PALETTE.length - START_COLORS + 1, FEEDBACK_DELAY = 180, OPTION_COUNT = 4;
+// 고령자도 플레이할 수 있도록 색은 4가지 고정, "색깔" 문제만.
+// 난이도는 문제당 답할 수 있는 시간으로만 조절: Lv.1 5초 → 레벨마다 -0.5초 → 최소 2초
+const START_TIME = 5, TIME_STEP = .5, MIN_TIME = 2;
+const ROUND = 45, PENALTY = 1, PER_LEVEL = 5, MAX_LEVEL = 1 + Math.round((START_TIME - MIN_TIME) / TIME_STEP), FEEDBACK_DELAY = 180, OPTION_COUNT = 4;
 const INK = "ink", MEANING = "meaning";
 
-// 난이도는 색 개수로만 조절: Lv.1 = 4색, 레벨마다 +1색. 나머지 조건은 고정.
 function levelSettings(level) {
   return {
-    colors: Math.min(START_COLORS + Math.max(0, level - 1), PALETTE.length),
-    meaning: .4, congruent: .2, interf: false,
+    colors: PALETTE.length, meaning: 0, congruent: .2, interf: false,
+    limit: Math.max(MIN_TIME, START_TIME - TIME_STEP * Math.max(0, level - 1)),
   };
 }
 const rnd = n => Math.floor(Math.random() * n);
@@ -184,13 +186,14 @@ const $ = id => document.getElementById(id);
 const screens = { title: $("title"), game: $("game"), result: $("result") };
 const show = name => Object.entries(screens).forEach(([k, el]) => el.hidden = k !== name);
 
+let limit = START_TIME;
 let state = "title", q = null, timeLeft = ROUND, shownAt = 0, locked = true;
 let score = 0, combo = 0, maxCombo = 0, correct = 0, wrong = 0, level = 1, rtSum = 0, lastFrame = 0;
 let best = 0;
 try { best = +localStorage.getItem("stroop.best") || 0; } catch (e) {}
 
 $("logo").innerHTML = ["색", "깔", " ", "헷", "갈", "림"].map((ch, i) =>
-  ch === " " ? " " : `<span style="color:${PALETTE[[0,1,0,2,3,4][i]][1]}">${ch}</span>`).join("");
+  ch === " " ? " " : `<span style="color:${PALETTE[[0,1,0,2,3,1][i] % PALETTE.length][1]}">${ch}</span>`).join("");
 
 const optBtns = [];
 for (let i = 0; i < OPTION_COUNT; i++) {
@@ -206,7 +209,7 @@ function renderTitle() { $("titleBest").textContent = best > 0 ? `최고 기록 
 
 function start() {
   score = combo = maxCombo = correct = wrong = 0; rtSum = 0; level = 1; timeLeft = ROUND; last = null;
-  $("card").textContent = ""; $("badge").hidden = true; $("options").hidden = true; $("fb").textContent = "";
+  $("card").textContent = ""; $("badge").hidden = true; $("options").hidden = true; $("qbarWrap").hidden = true; $("fb").textContent = "";
   hud(); show("game"); state = "countdown";
   let n = 3;
   const tick = () => {
@@ -219,7 +222,7 @@ function start() {
 }
 
 function play() {
-  state = "playing"; $("badge").hidden = false; $("options").hidden = false;
+  state = "playing"; $("badge").hidden = false; $("options").hidden = false; $("qbarWrap").hidden = false;
   ask(); lastFrame = performance.now(); requestAnimationFrame(loop);
 }
 
@@ -227,11 +230,19 @@ function loop(t) {
   if (state !== "playing") return;
   timeLeft -= (t - lastFrame) / 1000; lastFrame = t;
   if (timeLeft <= 0) { timeLeft = 0; hud(); end(); return; }
+  // 문제당 제한 시간
+  if (!locked && q) {
+    const el = (t - shownAt) / 1000, r = Math.max(0, 1 - el / limit), qb = $("qbar");
+    qb.style.transform = `scaleX(${r})`; qb.style.background = r > .3 ? "var(--ink)" : "var(--bad)";
+    if (el >= limit) resolve(false, el);
+  }
   hud(); requestAnimationFrame(loop);
 }
 
 function ask() {
   q = nextQuestion(level);
+  limit = levelSettings(level).limit;
+  $("qbar").style.transform = "scaleX(1)"; $("qbar").style.background = "var(--ink)";
   const badge = $("badge"), isInk = q.type === INK;
   badge.className = "badge" + (isInk ? "" : " meaning");
   badge.innerHTML = isInk ? "글자의 <b>색깔</b>을 고르세요" : "글자의 <b>뜻</b>을 고르세요";
@@ -248,8 +259,12 @@ function ask() {
 
 function answer(i) {
   if (state !== "playing" || locked || !q || i >= q.opts.length) return;
+  resolve(q.opts[i] === q.answer, (performance.now() - shownAt) / 1000);
+}
+
+// 정답 / 오답 / 시간 초과 처리
+function resolve(ok, rt) {
   locked = true;
-  const rt = (performance.now() - shownAt) / 1000, ok = q.opts[i] === q.answer;
   if (ok) {
     correct++; combo++; maxCombo = Math.max(maxCombo, combo); rtSum += rt;
     score += scoreFor(combo, rt);
