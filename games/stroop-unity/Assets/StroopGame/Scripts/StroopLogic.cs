@@ -117,7 +117,8 @@ namespace StroopMiniGame
                 int c = rng.Next(n);
                 if (!options.Contains(c)) options.Add(c);
             }
-            Shuffle(options);
+            // 버튼 위치 고정: 팔레트 순서대로 정렬 (빨강·파랑 / 초록·노랑)
+            options.Sort();
             q.options = options.ToArray();
 
             // 3) 버튼 글자 방해 색
@@ -136,14 +137,6 @@ namespace StroopMiniGame
             return v >= except ? v + 1 : v;
         }
 
-        private void Shuffle<T>(IList<T> list)
-        {
-            for (int i = list.Count - 1; i > 0; i--)
-            {
-                int j = rng.Next(i + 1);
-                (list[i], list[j]) = (list[j], list[i]);
-            }
-        }
     }
 
     /// <summary>점수 규칙</summary>

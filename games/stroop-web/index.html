@@ -156,7 +156,6 @@ function levelSettings(level) {
 }
 const rnd = n => Math.floor(Math.random() * n);
 const rndExcept = (n, ex) => { const v = rnd(n - 1); return v >= ex ? v + 1 : v; };
-function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
 let last = null;
 function nextQuestion(level) {
@@ -171,7 +170,7 @@ function nextQuestion(level) {
   const opts = [answer];
   if (word !== ink) opts.push(type === INK ? word : ink); // 함정 보기
   while (opts.length < Math.min(OPTION_COUNT, n)) { const c = rnd(n); if (!opts.includes(c)) opts.push(c); }
-  shuffle(opts);
+  opts.sort((a, b) => a - b); // 버튼 위치 고정: 빨강·파랑 / 초록·노랑
   const labelInk = opts.map(o => s.interf ? rndExcept(n, o) : -1);
   return (last = { word, ink, type, answer, opts, labelInk });
 }
