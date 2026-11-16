@@ -12,9 +12,9 @@
       body { margin: 0; padding: 16px; background: #020711; color: #f6fbff; font: 15px/1.4 system-ui, sans-serif; }
       h1 { font-size: 18px; margin: 0 0 4px; }
       p { margin: 0 0 14px; color: rgba(231, 244, 255, 0.7); font-size: 13px; }
-      .row { display: grid; grid-template-columns: 2rem 1fr; align-items: center; gap: 10px; margin-bottom: 8px; }
+      .row { display: grid; grid-template-columns: 2rem 1fr; align-items: center; gap: 10px; margin-bottom: 6px; }
       .row b { font-size: 20px; text-align: center; }
-      .sw { height: 56px; border-radius: 12px; overflow: hidden; }
+      .sw { height: 44px; border-radius: 12px; overflow: hidden; }
       .a { background-color: var(--mint); }
       .b { background-image: linear-gradient(var(--mint), var(--mint)); }
       .c { box-shadow: inset 0 0 0 100vmax var(--mint); }
@@ -22,6 +22,12 @@
       .e svg, .f canvas { display: block; width: 100%; height: 100%; }
       .g { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='%234cf0c4'/%3E%3C/svg%3E"); }
       .h { outline: 28px solid var(--mint); outline-offset: -28px; }
+      .i img { display: block; width: 100%; height: 100%; }
+      /* 어두운 색(다크모드 필터가 거의 안 건드림)을 CSS 필터로 밝혀서 민트 만들기 */
+      .j { background: #133c31; filter: brightness(4); }
+      .k { background: #1d5c4b; filter: brightness(2.6); }
+      .l { background: #000; }
+      .l > div { height: 100%; background: #133c31; filter: brightness(4); }
     </style>
   </head>
   <body>
@@ -35,6 +41,10 @@
     <div class="row"><b>F</b><div class="sw f"><canvas width="8" height="8"></canvas></div></div>
     <div class="row"><b>G</b><div class="sw g"></div></div>
     <div class="row"><b>H</b><div class="sw h"></div></div>
+    <div class="row"><b>I</b><div class="sw i"><img alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAEUlEQVR4nGPw+XAEjhiI4wAAOOEgAf9RCH8AAAAASUVORK5CYII=" /></div></div>
+    <div class="row"><b>J</b><div class="sw j"></div></div>
+    <div class="row"><b>K</b><div class="sw k"></div></div>
+    <div class="row"><b>L</b><div class="sw l"><div></div></div></div>
     <script>
       const c = document.querySelector(".f canvas").getContext("2d");
       c.fillStyle = "#4cf0c4";
