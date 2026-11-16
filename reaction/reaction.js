@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const GO_TIMEOUT = 1500; // 초록색 이후 제한 시간
+  const GO_TIMEOUT = 1500; // 민트색 이후 제한 시간
   const MIN_HUMAN_MS = 80; // 이보다 빠르면 예측 출발(부정출발)로 처리
   const NEXT_ROUND_DELAY = 1900;
   const STORAGE_KEY = "reaction-duel:names";
@@ -131,7 +131,7 @@
     game.taps = [null, null];
     updateScores();
     setPhase("waiting");
-    [0, 1].forEach((i) => setHalf(i, { msg: "기다리세요…", time: "초록색이 되면 터치!", cls: "" }));
+    [0, 1].forEach((i) => setHalf(i, { msg: "기다리세요…", time: "민트색이 되면 터치!", cls: "" }));
     const wait = 1400 + Math.random() * 3200;
     later(() => {
       requestAnimationFrame(() => {

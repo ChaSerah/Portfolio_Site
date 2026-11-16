@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="only dark" />
+    <meta name="robots" content="noindex" />
+    <title>색 테스트</title>
+    <style>
+      :root { color-scheme: only dark; --mint: #4cf0c4; }
+      @media (prefers-color-scheme: dark) { :root { color-scheme: only dark; } }
+      body { margin: 0; padding: 16px; background: #020711; color: #f6fbff; font: 15px/1.4 system-ui, sans-serif; }
+      h1 { font-size: 18px; margin: 0 0 4px; }
+      p { margin: 0 0 14px; color: rgba(231, 244, 255, 0.7); font-size: 13px; }
+      .row { display: grid; grid-template-columns: 2rem 1fr; align-items: center; gap: 10px; margin-bottom: 8px; }
+      .row b { font-size: 20px; text-align: center; }
+      .sw { height: 56px; border-radius: 12px; overflow: hidden; }
+      .a { background-color: var(--mint); }
+      .b { background-image: linear-gradient(var(--mint), var(--mint)); }
+      .c { box-shadow: inset 0 0 0 100vmax var(--mint); }
+      .d { border: 28px solid var(--mint); box-sizing: border-box; }
+      .e svg, .f canvas { display: block; width: 100%; height: 100%; }
+      .g { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='%234cf0c4'/%3E%3C/svg%3E"); }
+      .h { outline: 28px solid var(--mint); outline-offset: -28px; }
+    </style>
+  </head>
+  <body>
+    <h1>민트색 테스트</h1>
+    <p>다크모드를 켠 삼성 인터넷에서 이 화면을 캡처해 주세요. 원래 색과 가장 비슷한 번호를 찾습니다.</p>
+    <div class="row"><b>A</b><div class="sw a"></div></div>
+    <div class="row"><b>B</b><div class="sw b"></div></div>
+    <div class="row"><b>C</b><div class="sw c"></div></div>
+    <div class="row"><b>D</b><div class="sw d"></div></div>
+    <div class="row"><b>E</b><div class="sw e"><svg viewBox="0 0 10 10" preserveAspectRatio="none"><rect width="10" height="10" fill="#4cf0c4" /></svg></div></div>
+    <div class="row"><b>F</b><div class="sw f"><canvas width="8" height="8"></canvas></div></div>
+    <div class="row"><b>G</b><div class="sw g"></div></div>
+    <div class="row"><b>H</b><div class="sw h"></div></div>
+    <script>
+      const c = document.querySelector(".f canvas").getContext("2d");
+      c.fillStyle = "#4cf0c4";
+      c.fillRect(0, 0, 8, 8);
+    </script>
+  </body>
+</html>
