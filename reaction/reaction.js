@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const GO_TIMEOUT = 1500; // 민트색 이후 제한 시간
+  const GO_TIMEOUT = 1500; // 초록색 이후 제한 시간
   const MIN_HUMAN_MS = 80; // 이보다 빠르면 예측 출발(부정출발)로 처리
   const NEXT_ROUND_DELAY = 1900;
   const STORAGE_KEY = "reaction-duel:names";
@@ -42,6 +42,50 @@
   // ---------------------------------------------------------------- 게임 상태
   const gameEl = $("#game");
   const halves = [$(".half-p1", gameEl), $(".half-p2", gameEl)]; // index 0 = 아래(P1), 1 = 위(P2)
+
+  // 신호 화면을 canvas로 그림: 삼성 인터넷 다크모드는 CSS 배경색·글자색은 바꾸지만 canvas 내용은 그대로 둠.
+  // 배경뿐 아니라 이름·"터치!"·승수 글자까지 canvas에 그려서 원래 색 그대로 보이게 함.
+  const goColor = getComputedStyle(document.documentElement).getPropertyValue("--go").trim() || "#4cf0c4";
+  const goCanvases = halves.map((h) => {
+    const c = document.createElement("canvas");
+    c.className = "go-fill";
+    c.setAttribute("aria-hidden", "true");
+    h.prepend(c);
+    return c;
+  });
+
+  function paintGo(i, name, score) {
+    const h = halves[i];
+    const c = goCanvases[i];
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const w = h.clientWidth;
+    const hh = h.clientHeight;
+    c.width = Math.round(w * dpr);
+    c.height = Math.round(hh * dpr);
+    const ctx = c.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = goColor;
+    ctx.fillRect(0, 0, w, hh);
+
+    const fontOf = (sel) => {
+      const cs = getComputedStyle($(sel, h));
+      return { family: cs.fontFamily, size: parseFloat(cs.fontSize) };
+    };
+    const msg = fontOf(".h-msg");
+    const small = fontOf(".h-name");
+    const cx = w / 2;
+    const cy = hh / 2;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#03170c";
+    ctx.font = `700 ${msg.size}px ${msg.family}`;
+    ctx.fillText("터치!", cx, cy);
+    ctx.fillStyle = "rgba(3, 23, 12, 0.7)";
+    ctx.font = `800 ${small.size}px ${small.family}`;
+    ctx.fillText(name, cx, cy - msg.size * 1.15);
+    ctx.fillText(score, cx, cy + msg.size * 1.25);
+  }
+
   const roundLabel = $("#round-label");
 
   let game = null;
@@ -131,7 +175,9 @@
     game.taps = [null, null];
     updateScores();
     setPhase("waiting");
-    [0, 1].forEach((i) => setHalf(i, { msg: "기다리세요…", time: "민트색이 되면 터치!", cls: "" }));
+    [0, 1].forEach((i) => setHalf(i, { msg: "기다리세요…", time: "초록색이 되면 터치!", cls: "" }));
+    // 신호 화면을 미리 그려 둠 (신호 순간에는 보이기만 하면 됨)
+    game.players.forEach((p, i) => paintGo(i, p.name, `${p.wins}승`));
     const wait = 1400 + Math.random() * 3200;
     later(() => {
       requestAnimationFrame(() => {

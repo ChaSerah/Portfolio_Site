@@ -363,6 +363,8 @@ h2 {
 }
 
 .half-inner {
+  position: relative;
+  z-index: 1;
   display: grid;
   justify-items: center;
   gap: 0.25rem;
@@ -406,7 +408,30 @@ h2 {
   animation: pulse 1.6s ease-in-out infinite;
 }
 
-/* 민트색 신호 화면 */
+/* 신호 화면: 실제 색은 canvas(.go-fill)가 칠함, 배경색은 대비용 예비 */
+.go-fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  pointer-events: none;
+}
+
+.screen-game[data-phase="go"] .go-fill {
+  display: block;
+}
+
+/* 신호 중에는 canvas에 그린 글자를 보여 주고, 이미 누른 쪽은 canvas를 숨기고 기록을 보여 줌 */
+.screen-game[data-phase="go"] .half:not(.is-done):not(.is-foul) .half-inner {
+  visibility: hidden;
+}
+
+.screen-game[data-phase="go"] .half.is-done .go-fill,
+.screen-game[data-phase="go"] .half.is-foul .go-fill {
+  display: none;
+}
+
 .screen-game[data-phase="go"] .half {
   transition: none;
   background: var(--go);
