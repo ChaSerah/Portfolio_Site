@@ -5,6 +5,8 @@
 // - 정적인 회로는 한 번만 그리고, 매 프레임 빛 펄스만 그림
 // - 게임 화면·탭 숨김·움직임 줄이기 설정에서는 애니메이션을 멈춤
 (() => {
+  // 빛 개수·속도는 config.js 에서 바꿈
+  const CC = Object.assign({ maxPulses: 4, speedMin: 55, speedMax: 90 }, window.GAME_CONFIG?.circuit);
   const W = 360;
   const H = 640;
   const SPLIT = 450; // 이 y(설계 좌표)보다 위는 위 묶음
@@ -126,9 +128,10 @@
     c.lineJoin = "round";
     const list = traces.filter((t) => isBottom(t.pts[0][1]) === bottom);
     const grad = c.createLinearGradient(0, 0, W, H);
-    grad.addColorStop(0, "#3f5bff");
-    grad.addColorStop(0.55, "#5546ff");
-    grad.addColorStop(1, "#8b45ff");
+    const [c0, c1, c2] = window.GAME_CONFIG?.colors.circuit ?? ["#3f5bff", "#5546ff", "#8b45ff"];
+    grad.addColorStop(0, c0);
+    grad.addColorStop(0.55, c1);
+    grad.addColorStop(1, c2);
 
     // 1) 네온 바깥 빛 + 선
     c.shadowColor = "rgba(70, 80, 255, 0.95)";
@@ -211,7 +214,7 @@
     pulses.push({
       route,
       d: 0,
-      speed: 55 + Math.random() * 35,
+      speed: CC.speedMin + Math.random() * (CC.speedMax - CC.speedMin),
       trail: 30 + Math.random() * 16,
       hue: Math.random() < 0.5 ? "190, 210, 255" : "215, 185, 255",
     });
@@ -247,7 +250,7 @@
     const setT = (bottom) => ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, bottom ? dpr * oy : 0);
     ctx.globalCompositeOperation = "lighter";
 
-    if (pulses.length < 4 && now - lastSpawn > 700 + Math.random() * 900) spawn(now);
+    if (pulses.length < CC.maxPulses && now - lastSpawn > 700 + Math.random() * 900) spawn(now);
 
     for (let i = pulses.length - 1; i >= 0; i--) {
       const p = pulses[i];

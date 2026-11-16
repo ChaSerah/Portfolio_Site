@@ -6,6 +6,7 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 OUT="$(mktemp -d)"
 cp -r "$ROOT/reaction" "$OUT/"
 cp "$ROOT/deploy/reaction-duel/vercel.json" "$OUT/vercel.json"
+rm -f "$OUT/reaction/README.md"   # 편집 안내 문서는 배포하지 않음
 cd "$OUT"
 vercel link --yes --project reaction-duel-one-phone
 vercel deploy --prod --yes

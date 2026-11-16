@@ -2,9 +2,11 @@
 // 각 반쪽 화면 위에 모서리 브래킷·상태 태그·승리 칸을 그리고, 가운데 띠도 canvas로 그림.
 // 반쪽 화면 안에 넣기 때문에 위쪽 플레이어 화면은 CSS 회전을 그대로 따라감.
 (() => {
-  const AQUA = "#58d5f2";
-  const PINK = "#ff8fb7";
-  const VIOLET = "#a77bff";
+  // 색은 config.js 에서 바꿈
+  const COL = window.GAME_CONFIG?.colors ?? {};
+  const AQUA = COL.p1 ?? "#58d5f2";
+  const PINK = COL.p2 ?? "#ff8fb7";
+  const VIOLET = COL.violet ?? "#a77bff";
   const game = document.getElementById("game");
   const halves = [...game.querySelectorAll(".half")];
   const divider = game.querySelector(".divider");
@@ -86,7 +88,7 @@
     poly(x, [[tagX, tagY], [tagX + tw, tagY], [tagX + tw, tagY + 12], [tagX + tw - 5, tagY + 17], [tagX, tagY + 17]], true);
     x.fillStyle = ink;
     x.fill();
-    x.fillStyle = onGo ? "#4cf0c4" : "#070c1c";
+    x.fillStyle = onGo ? COL.go ?? "#4cf0c4" : "#070c1c";
     x.textBaseline = "middle";
     x.textAlign = "left";
     x.fillText(label, tagX + 6, tagY + 9);

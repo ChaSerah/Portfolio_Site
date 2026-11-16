@@ -1,9 +1,11 @@
 (() => {
   "use strict";
 
-  const GO_TIMEOUT = 1500; // 초록색 이후 제한 시간
-  const MIN_HUMAN_MS = 80; // 이보다 빠르면 예측 출발(부정출발)로 처리
-  const NEXT_ROUND_DELAY = 1900;
+  // 시간 값은 config.js 에서 바꿈
+  const T = window.GAME_CONFIG?.timing ?? {};
+  const GO_TIMEOUT = T.goTimeout ?? 1500; // 신호 이후 제한 시간
+  const MIN_HUMAN_MS = T.minHumanMs ?? 80; // 이보다 빠르면 예측 출발(부정출발)로 처리
+  const NEXT_ROUND_DELAY = T.nextRoundDelay ?? 1900;
   const STORAGE_KEY = "reaction-duel:names";
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -36,7 +38,7 @@
 
   // 신호 화면을 canvas로 그림: 삼성 인터넷 다크모드는 CSS 배경색·글자색은 바꾸지만 canvas 내용은 그대로 둠.
   // 배경뿐 아니라 이름·"터치!"·승수 글자까지 canvas에 그려서 원래 색 그대로 보이게 함.
-  const goColor = getComputedStyle(document.documentElement).getPropertyValue("--go").trim() || "#4cf0c4";
+  const goColor = getComputedStyle(document.documentElement).getPropertyValue("--go").trim() || window.GAME_CONFIG?.colors.go || "#4cf0c4";
   const goCanvases = halves.map((h) => {
     const c = document.createElement("canvas");
     c.className = "go-fill";
@@ -150,13 +152,13 @@
     keepAwake();
     updateScores();
     setPhase("intro");
-    let n = 3;
+    let n = T.countdownFrom ?? 3;
     const tick = () => {
       if (!game || game.phase !== "intro") return;
       if (n === 0) return startRound();
       [0, 1].forEach((i) => setHalf(i, { msg: String(n), time: "손가락을 화면 위에 준비!", cls: "" }));
       n -= 1;
-      later(tick, 700);
+      later(tick, T.countdownStep ?? 700);
     };
     tick();
   }
@@ -169,7 +171,7 @@
     [0, 1].forEach((i) => setHalf(i, { msg: "기다리세요…", time: "초록색이 되면 터치!", cls: "" }));
     // 신호 화면을 미리 그려 둠 (신호 순간에는 보이기만 하면 됨)
     game.players.forEach((p, i) => paintGo(i, p.name, `${p.wins}승`));
-    const wait = 1400 + Math.random() * 3200;
+    const wait = (T.waitMin ?? 1400) + Math.random() * (T.waitRandom ?? 3200);
     later(() => {
       requestAnimationFrame(() => {
         if (!game || game.phase !== "waiting") return;

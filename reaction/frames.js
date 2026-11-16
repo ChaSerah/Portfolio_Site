@@ -2,9 +2,11 @@
 // 삼성 인터넷 다크모드는 CSS 색(테두리·배경·글자)을 임의로 어둡게 바꾸지만 canvas 내용은 그대로 두기 때문.
 // 이 스크립트가 동작하면 <html>에 has-fx 클래스가 붙고, CSS 쪽 프레임은 숨겨짐.
 (() => {
-  const AQUA = "#58d5f2";
-  const PINK = "#ff8fb7";
-  const VIOLET = "#a77bff";
+  // 색은 config.js 에서 바꿈
+  const COL = window.GAME_CONFIG?.colors ?? {};
+  const AQUA = COL.p1 ?? "#58d5f2";
+  const PINK = COL.p2 ?? "#ff8fb7";
+  const VIOLET = COL.violet ?? "#a77bff";
   const renders = [];
 
   const dprOf = () => Math.min(window.devicePixelRatio || 1, 3);
@@ -225,7 +227,7 @@
   }
 
   // ---- 민트색 강조 글자 (안내 문구의 "초록색", 결과표의 이긴 기록) ----
-  const MINT = "#4cf0c4";
+  const MINT = COL.go ?? "#4cf0c4";
   function drawWord(x, w, h, el) {
     const cs = getComputedStyle(el);
     x.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
