@@ -83,7 +83,7 @@
     ctx.fillStyle = "rgba(3, 23, 12, 0.7)";
     ctx.font = `800 ${small.size}px ${small.family}`;
     ctx.fillText(name, cx, cy - msg.size * 1.15);
-    ctx.fillText(score, cx, cy + msg.size * 1.25);
+    // 승수는 HUD(gamefx.js)의 승리 칸으로 표시
   }
 
   const roundLabel = $("#round-label");
