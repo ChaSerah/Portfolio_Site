@@ -224,6 +224,22 @@
     x.fill();
   }
 
+  // ---- 민트색 강조 글자 (안내 문구의 "초록색", 결과표의 이긴 기록) ----
+  const MINT = "#4cf0c4";
+  function drawWord(x, w, h, el) {
+    const cs = getComputedStyle(el);
+    x.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    if ("letterSpacing" in x) x.letterSpacing = cs.letterSpacing === "normal" ? "0px" : cs.letterSpacing;
+    const str = el.textContent.trim();
+    const m = x.measureText(str);
+    const asc = m.fontBoundingBoxAscent ?? m.actualBoundingBoxAscent;
+    const desc = m.fontBoundingBoxDescent ?? m.actualBoundingBoxDescent;
+    x.fillStyle = MINT;
+    x.textAlign = "center";
+    x.textBaseline = "alphabetic";
+    x.fillText(str, w / 2, (h - (asc + desc)) / 2 + asc);
+  }
+
   // 어떤 요소를 어떤 모양으로 그릴지
   const rules = [
     [".btn-start", 26, (x, w, h, el) => drawPrimary(x, w, h, el, { nodes: true })],
@@ -234,6 +250,7 @@
     [".inp", 12, drawInput],
     [".rounds label i", 2, drawRound],
     [".field > span", 2, drawDot],
+    [".go-text, .round-table td.best", 2, drawWord],
   ];
 
   function scan() {

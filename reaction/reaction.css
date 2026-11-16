@@ -1044,3 +1044,10 @@ h2,
   color: #dfe6ff;
   font-size: 0.8rem;
 }
+
+/* 민트색 강조 글자도 canvas가 그림 (삼성 인터넷 다크모드 대응) */
+.has-fx .go-text,
+.has-fx .round-table td.best {
+  position: relative;
+  color: transparent;
+}
