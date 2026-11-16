@@ -231,9 +231,24 @@ h2 {
   color: #031421;
 }
 
-/* 대결 시작 버튼: 입력칸과 같은 라운드 사각형 */
+/* 대결 시작 + QR 공유: 틈을 두고 이어진 한 쌍처럼 보이는 버튼
+   대결 시작은 오른쪽 위, QR 공유는 왼쪽 아래 귀퉁이만 크게 둥글게 */
+.setup .btn-primary,
+.home-links .btn {
+  min-height: 3.4rem;
+  border-radius: 10px;
+}
+
 .setup .btn-primary {
-  border-radius: 14px;
+  border-top-right-radius: 1.7rem;
+}
+
+.home-inner .home-links {
+  margin-top: 6px;
+}
+
+.home-links .btn {
+  border-bottom-left-radius: 1.7rem;
 }
 
 .btn-ghost:active,
