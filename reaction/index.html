@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#020711" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Reaction Duel</title>
+    <meta name="description" content="한 대의 휴대폰으로 두 명이 마주 보고 즐기는 반응속도 대결 게임" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./reaction.css?v=20261116" />
+  </head>
+  <body>
+    <!-- 홈 -->
+    <section class="screen screen-home is-active" id="home" aria-labelledby="home-title">
+      <div class="home-inner">
+        <p class="kicker">1 PHONE · 2 PLAYERS</p>
+        <h1 id="home-title">Reaction<br />Duel</h1>
+        <p class="lead">휴대폰을 테이블에 놓고 마주 앉으세요.<br />화면이 <b class="go-text">초록색</b>으로 바뀌는 순간, 내 쪽 화면을 먼저 터치!</p>
+
+        <form class="setup" id="setup-form" autocomplete="off">
+          <label class="field field-p2">
+            <span>위쪽 플레이어</span>
+            <input id="name-p2" name="p2" maxlength="12" placeholder="닉네임" required />
+          </label>
+          <label class="field field-p1">
+            <span>아래쪽 플레이어</span>
+            <input id="name-p1" name="p1" maxlength="12" placeholder="닉네임" required />
+          </label>
+          <div class="rounds" role="radiogroup" aria-label="라운드 수">
+            <span>라운드</span>
+            <label><input type="radio" name="rounds" value="3" /><i>3</i></label>
+            <label><input type="radio" name="rounds" value="5" checked /><i>5</i></label>
+            <label><input type="radio" name="rounds" value="7" /><i>7</i></label>
+          </div>
+          <p class="form-error" id="form-error" role="alert"></p>
+          <button class="btn btn-primary" type="submit">대결 시작</button>
+        </form>
+
+        <div class="home-links">
+          <button class="btn btn-ghost" type="button" data-open="ranking">🏆 랭킹</button>
+          <button class="btn btn-ghost" type="button" data-open="qr">QR 공유</button>
+        </div>
+        <details class="rules">
+          <summary>규칙</summary>
+          <ul>
+            <li>대기 화면(빨간색)에서 누르면 <b>부정출발</b> — 그 라운드는 기록 없음.</li>
+            <li>둘 다 부정출발하면 라운드를 다시 진행합니다.</li>
+            <li>초록색 이후 1.5초 안에 누르지 않으면 실패 처리됩니다.</li>
+            <li>유효 기록이 3회 이상이면 <b>평균 반응속도</b>가 서버 랭킹에 저장됩니다.</li>
+          </ul>
+        </details>
+      </div>
+    </section>
+
+    <!-- 게임 -->
+    <section class="screen screen-game" id="game" aria-label="게임 화면">
+      <div class="half half-p2" data-player="1">
+        <div class="half-inner">
+          <p class="h-name"></p>
+          <p class="h-msg"></p>
+          <p class="h-time"></p>
+          <p class="h-score"></p>
+        </div>
+      </div>
+      <div class="divider">
+        <span class="round-label" id="round-label">ROUND 1/5</span>
+        <button class="quit" id="quit" type="button" aria-label="게임 종료">✕</button>
+      </div>
+      <div class="half half-p1" data-player="0">
+        <div class="half-inner">
+          <p class="h-name"></p>
+          <p class="h-msg"></p>
+          <p class="h-time"></p>
+          <p class="h-score"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 결과 -->
+    <section class="screen screen-result" id="result" aria-labelledby="result-title">
+      <div class="panel">
+        <p class="kicker">RESULT</p>
+        <h2 id="result-title"></h2>
+        <div class="result-cards" id="result-cards"></div>
+        <table class="round-table" id="round-table"></table>
+        <p class="submit-status" id="submit-status" role="status"></p>
+        <div class="result-actions">
+          <button class="btn btn-primary" type="button" id="rematch">다시 대결</button>
+          <button class="btn btn-ghost" type="button" data-open="ranking">🏆 랭킹</button>
+          <button class="btn btn-ghost" type="button" data-open="home">처음으로</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 랭킹 -->
+    <section class="screen screen-ranking" id="ranking" aria-labelledby="ranking-title">
+      <div class="panel">
+        <p class="kicker">LEADERBOARD</p>
+        <h2 id="ranking-title">평균 반응속도 랭킹</h2>
+        <p class="sub">한 판 평균 기준 개인 최고 기록 · 낮을수록 빠름</p>
+        <ol class="board" id="board"></ol>
+        <p class="board-status" id="board-status"></p>
+        <div class="result-actions">
+          <button class="btn btn-ghost" type="button" id="refresh-board">새로고침</button>
+          <button class="btn btn-primary" type="button" data-back>돌아가기</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- QR -->
+    <section class="screen screen-qr" id="qr" aria-labelledby="qr-title">
+      <div class="panel panel-qr">
+        <p class="kicker">SCAN TO PLAY</p>
+        <h2 id="qr-title">휴대폰 카메라로 QR을 찍으세요</h2>
+        <div class="qr-box" id="qr-box"></div>
+        <p class="qr-url" id="qr-url"></p>
+        <p class="sub">한 대의 휴대폰을 둘이 마주 보고 함께 플레이합니다.</p>
+        <div class="result-actions">
+          <button class="btn btn-ghost" type="button" id="print-qr">인쇄</button>
+          <button class="btn btn-primary" type="button" data-back>여기서 플레이</button>
+        </div>
+      </div>
+    </section>
+
+    <script src="./vendor/qrcode.js" defer></script>
+    <script src="./reaction.js?v=20261116" defer></script>
+  </body>
+</html>
