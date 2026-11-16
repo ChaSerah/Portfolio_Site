@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./reaction.css?v=20261116-fonts" />
+    <link rel="stylesheet" href="./reaction.css?v=20261116-foul" />
   </head>
   <body>
     <!-- 홈 -->
@@ -49,8 +49,7 @@
         <details class="rules">
           <summary>규칙</summary>
           <ul>
-            <li>대기 화면(빨간색)에서 누르면 <b>부정출발</b> — 그 라운드는 기록 없음.</li>
-            <li>둘 다 부정출발하면 라운드를 다시 진행합니다.</li>
+            <li>대기 화면(빨간색)에서 누르면 <b>부정출발</b> — 그 라운드는 <b>상대에게 승점</b>이 갑니다.</li>
             <li>초록색 이후 1.5초 안에 누르지 않으면 실패 처리됩니다.</li>
             <li>유효 기록이 3회 이상이면 <b>평균 반응속도</b>가 서버 랭킹에 저장됩니다.</li>
           </ul>
@@ -129,6 +128,6 @@
     </section>
 
     <script src="./vendor/qrcode.js" defer></script>
-    <script src="./reaction.js?v=20261116" defer></script>
+    <script src="./reaction.js?v=20261116-foul" defer></script>
   </body>
 </html>

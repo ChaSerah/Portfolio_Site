@@ -63,7 +63,11 @@
   function setHalf(i, { msg, time, cls } = {}) {
     const h = halves[i];
     if (msg !== undefined) $(".h-msg", h).textContent = msg;
-    if (time !== undefined) $(".h-time", h).textContent = time;
+    if (time !== undefined) {
+      const el = $(".h-time", h);
+      el.textContent = time;
+      el.classList.toggle("is-num", /\d\s?ms$/.test(time));
+    }
     if (cls !== undefined) {
       h.classList.remove("is-foul", "is-done", "is-winner");
       if (cls) h.classList.add(...cls.split(" "));
@@ -145,10 +149,13 @@
     }, wait);
   }
 
+  // 부정출발: 그 즉시 라운드 종료, 상대에게 승점
   function foul(i, label) {
-    game.taps[i] = { type: "foul" };
-    setHalf(i, { msg: label, time: "이번 라운드 기록 없음", cls: "is-foul" });
+    game.taps[i] = { type: "foul", label };
+    const other = 1 - i;
+    if (!game.taps[other]) game.taps[other] = { type: "bye" };
     navigator.vibrate?.(180);
+    finishRound(other);
   }
 
   function onTap(i, e) {
@@ -156,48 +163,43 @@
     if (e.cancelable) e.preventDefault();
     if (game.taps[i]) return;
 
-    if (game.phase === "waiting") {
-      foul(i, "부정출발!");
-      if (game.taps.every((t) => t?.type === "foul")) {
-        clearTimers();
-        setPhase("roundEnd");
-        [0, 1].forEach((k) => setHalf(k, { msg: "둘 다 부정출발", time: "라운드를 다시 진행합니다" }));
-        later(startRound, 1600);
-      }
-      return;
-    }
-
+    if (game.phase === "waiting") return foul(i, "부정출발!");
     if (game.phase !== "go") return;
 
     const ms = e.timeStamp - game.goAt;
-    if (ms < MIN_HUMAN_MS) {
-      foul(i, "너무 빨라요!");
-    } else {
-      game.taps[i] = { type: "time", ms };
-      setHalf(i, { msg: "", time: `${Math.round(ms)} ms`, cls: "is-done" });
-    }
+    if (ms < MIN_HUMAN_MS) return foul(i, "너무 빨라요!");
+
+    game.taps[i] = { type: "time", ms };
+    setHalf(i, { msg: "", time: `${Math.round(ms)} ms`, cls: "is-done" });
     if (game.taps.every(Boolean)) finishRound();
   }
 
-  function finishRound() {
-    if (!game || game.phase !== "go") return;
+  function finishRound(forcedWinner = null) {
+    if (!game || (game.phase !== "go" && game.phase !== "waiting")) return;
     clearTimers();
     setPhase("roundEnd");
 
     const taps = game.taps.map((t) => t ?? { type: "miss" });
     const ms = taps.map((t) => (t.type === "time" ? t.ms : null));
 
-    let winner = null;
-    if (ms[0] !== null && ms[1] !== null) winner = ms[0] < ms[1] ? 0 : ms[1] < ms[0] ? 1 : null;
-    else if (ms[0] !== null) winner = 0;
-    else if (ms[1] !== null) winner = 1;
+    let winner = forcedWinner;
+    if (winner === null) {
+      if (ms[0] !== null && ms[1] !== null) winner = ms[0] < ms[1] ? 0 : ms[1] < ms[0] ? 1 : null;
+      else if (ms[0] !== null) winner = 0;
+      else if (ms[1] !== null) winner = 1;
+    }
     if (winner !== null) game.players[winner].wins += 1;
 
     taps.forEach((t, i) => {
       game.players[i].results.push({ type: t.type, ms: ms[i], win: winner === i });
-      const time = t.type === "time" ? `${Math.round(t.ms)} ms` : t.type === "foul" ? "부정출발" : "시간 초과";
+      if (t.type === "foul") {
+        setHalf(i, { msg: t.label, time: "상대에게 1점", cls: "is-foul" });
+        return;
+      }
+      const time =
+        t.type === "time" ? `${Math.round(t.ms)} ms` : t.type === "bye" ? "상대 부정출발" : "시간 초과";
       const msg = winner === i ? "승리!" : winner === null ? "무승부" : "패배";
-      setHalf(i, { msg, time, cls: winner === i ? "is-winner" : t.type === "foul" ? "is-foul" : "is-done" });
+      setHalf(i, { msg, time, cls: winner === i ? "is-winner" : "is-done" });
     });
 
     game.round += 1;
@@ -268,7 +270,8 @@
       .map((_, r) => {
         const cell = (p) => {
           const x = p.results[r];
-          const text = x.type === "time" ? `${fmt(x.ms)}ms` : x.type === "foul" ? "부정출발" : "시간초과";
+          const text =
+            x.type === "time" ? `${fmt(x.ms)}ms` : x.type === "foul" ? "부정출발" : x.type === "bye" ? "부전승" : "시간초과";
           const cls = x.win ? "best" : x.type === "time" ? "" : "bad";
           return `<td class="${cls}">${text}</td>`;
         };

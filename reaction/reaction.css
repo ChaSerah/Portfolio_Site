@@ -666,7 +666,7 @@ h2,
   font-weight: 700;
 }
 
-.h-time,
+.h-time.is-num,
 .card .c-avg,
 .board .v,
 .round-table td,
