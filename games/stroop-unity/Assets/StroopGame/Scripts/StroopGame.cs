@@ -17,7 +17,6 @@ namespace StroopMiniGame
         [SerializeField] private float roundDuration = 45f;
         [SerializeField] private float wrongPenaltySeconds = 1f;
         [SerializeField] private int correctPerLevel = 5;
-        [SerializeField] private int maxLevel = 5;
         [SerializeField] private float feedbackDelay = 0.18f;
 
         [Header("표시")]
@@ -33,6 +32,8 @@ namespace StroopMiniGame
             new StroopColor("노랑", Hex("#F2B705")),
             new StroopColor("보라", Hex("#8E3CC8")),
             new StroopColor("검정", Hex("#222222")),
+            new StroopColor("주황", Hex("#F57C00")),
+            new StroopColor("분홍", Hex("#E8559B")),
         };
 
         private const string BestScoreKey = "StroopGame.BestScore";
@@ -206,6 +207,7 @@ namespace StroopMiniGame
                 maxCombo = Mathf.Max(maxCombo, combo);
                 reactionSum += rt;
                 score += StroopScoring.ForCorrect(combo, rt);
+                int maxLevel = LevelSettings.MaxLevelFor(palette.Count);
                 level = Mathf.Min(maxLevel, 1 + correct / Mathf.Max(1, correctPerLevel));
                 ShowFeedback(true);
             }

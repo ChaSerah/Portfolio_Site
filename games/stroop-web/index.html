@@ -139,19 +139,18 @@ button:focus-visible { outline: 3px solid var(--meaning); outline-offset: 3px; }
 const PALETTE = [
   ["빨강", "#E53935"], ["파랑", "#1E63D6"], ["초록", "#2E9E44"],
   ["노랑", "#F2B705"], ["보라", "#8E3CC8"], ["검정", "#222222"],
+  ["주황", "#F57C00"], ["분홍", "#E8559B"],
 ];
-const ROUND = 45, PENALTY = 1, PER_LEVEL = 5, MAX_LEVEL = 5, FEEDBACK_DELAY = 180, OPTION_COUNT = 4;
+const START_COLORS = 4;
+const ROUND = 45, PENALTY = 1, PER_LEVEL = 5, MAX_LEVEL = PALETTE.length - START_COLORS + 1, FEEDBACK_DELAY = 180, OPTION_COUNT = 4;
 const INK = "ink", MEANING = "meaning";
 
+// 난이도는 색 개수로만 조절: Lv.1 = 4색, 레벨마다 +1색. 나머지 조건은 고정.
 function levelSettings(level) {
-  let s;
-  if (level <= 1) s = { colors: 4, meaning: 0, congruent: .25, interf: false };
-  else if (level === 2) s = { colors: 4, meaning: .3, congruent: .2, interf: false };
-  else if (level === 3) s = { colors: 5, meaning: .4, congruent: .2, interf: false };
-  else if (level === 4) s = { colors: 5, meaning: .5, congruent: .15, interf: true };
-  else s = { colors: 6, meaning: .5, congruent: .15, interf: true };
-  s.colors = Math.min(s.colors, PALETTE.length);
-  return s;
+  return {
+    colors: Math.min(START_COLORS + Math.max(0, level - 1), PALETTE.length),
+    meaning: .4, congruent: .2, interf: false,
+  };
 }
 const rnd = n => Math.floor(Math.random() * n);
 const rndExcept = (n, ex) => { const v = rnd(n - 1); return v >= ex ? v + 1 : v; };

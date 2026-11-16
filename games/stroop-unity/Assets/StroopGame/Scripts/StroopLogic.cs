@@ -45,18 +45,22 @@ namespace StroopMiniGame
         public float congruentChance;   // 단어와 잉크 색이 같을 확률
         public bool buttonInterference; // 버튼 글자에도 다른 색 입히기
 
+        public const int StartColorCount = 4;
+
+        /// <summary>난이도는 색 개수로만 조절: Lv.1 = 4색, 레벨마다 +1색. 나머지 조건은 고정.</summary>
         public static LevelSettings For(int level, int paletteCount)
         {
-            var s = new LevelSettings();
-            if (level <= 1)      { s.colorCount = 4; s.meaningChance = 0f;   s.congruentChance = 0.25f; }
-            else if (level == 2) { s.colorCount = 4; s.meaningChance = 0.3f; s.congruentChance = 0.2f;  }
-            else if (level == 3) { s.colorCount = 5; s.meaningChance = 0.4f; s.congruentChance = 0.2f;  }
-            else if (level == 4) { s.colorCount = 5; s.meaningChance = 0.5f; s.congruentChance = 0.15f; s.buttonInterference = true; }
-            else                 { s.colorCount = 6; s.meaningChance = 0.5f; s.congruentChance = 0.15f; s.buttonInterference = true; }
-
-            s.colorCount = Mathf.Clamp(s.colorCount, 2, paletteCount);
-            return s;
+            return new LevelSettings
+            {
+                colorCount = Mathf.Clamp(StartColorCount + Mathf.Max(0, level - 1), 2, paletteCount),
+                meaningChance = 0.4f,
+                congruentChance = 0.2f,
+                buttonInterference = false,
+            };
         }
+
+        /// <summary>팔레트 크기로 정해지는 최대 레벨</summary>
+        public static int MaxLevelFor(int paletteCount) => Mathf.Max(1, paletteCount - StartColorCount + 1);
     }
 
     /// <summary>문제 생성기 (MonoBehaviour와 분리된 순수 로직)</summary>
