@@ -475,13 +475,6 @@ h2 {
   line-height: 1.5;
 }
 
-.card .c-rank {
-  margin: 0.4rem 0 0;
-  word-break: keep-all;
-  font-size: 0.8rem;
-  font-weight: 800;
-}
-
 .round-table {
   width: 100%;
   border-collapse: collapse;
@@ -508,81 +501,6 @@ h2 {
 
 .round-table .bad {
   color: var(--foul);
-}
-
-.submit-status,
-.board-status {
-  min-height: 1.2em;
-  margin: 0.8rem 0 0;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-/* ---------- 랭킹 ---------- */
-.board {
-  max-height: 55dvh;
-  margin: 0;
-  padding: 0;
-  overflow-y: auto;
-  list-style: none;
-}
-
-.board li {
-  display: grid;
-  grid-template-columns: 2.2rem 1fr auto;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.65rem 0.25rem;
-  border-bottom: 1px solid var(--line);
-}
-
-.board li.me {
-  background: rgba(88, 213, 242, 0.1);
-}
-
-.board .r {
-  font-weight: 900;
-  text-align: center;
-  color: var(--muted);
-}
-
-.board li:nth-child(1) .r {
-  color: #ffd76a;
-}
-
-.board li:nth-child(2) .r {
-  color: #d8e3ee;
-}
-
-.board li:nth-child(3) .r {
-  color: #e6a777;
-}
-
-.board .n {
-  min-width: 0;
-}
-
-.board .n b {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.board .n small {
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-
-.board .v {
-  font-size: 1.1rem;
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-}
-
-.board .v small {
-  font-size: 0.72rem;
-  color: var(--muted);
 }
 
 /* ---------- QR ---------- */
@@ -654,9 +572,7 @@ h2,
 .h-name,
 .h-msg,
 .h-score,
-.card .c-name,
-.board .r,
-.board .n b {
+.card .c-name {
   font-family: var(--font-display);
 }
 
@@ -668,14 +584,12 @@ h2,
 
 .h-time.is-num,
 .card .c-avg,
-.board .v,
 .round-table td,
 .qr-url {
   font-family: var(--font-mono);
 }
 
-.card .c-avg small,
-.board .v small {
+.card .c-avg small {
   font-family: var(--font-body);
 }
 

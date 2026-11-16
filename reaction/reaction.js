@@ -1,7 +1,6 @@
 (() => {
   "use strict";
 
-  const API = "/api/reaction/scores";
   const GO_TIMEOUT = 1500; // 초록색 이후 제한 시간
   const MIN_HUMAN_MS = 80; // 이보다 빠르면 예측 출발(부정출발)로 처리
   const NEXT_ROUND_DELAY = 1900;
@@ -10,7 +9,7 @@
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
-  const screens = ["home", "game", "result", "ranking", "qr"];
+  const screens = ["home", "game", "result", "qr"];
   let current = "home";
   let previous = "home";
 
@@ -20,7 +19,6 @@
     current = id;
     for (const s of screens) document.getElementById(s).classList.toggle("is-active", s === id);
     window.scrollTo(0, 0);
-    if (id === "ranking") loadBoard();
     if (id === "qr") renderQr();
   }
 
@@ -111,7 +109,6 @@
       phase: "intro",
       goAt: 0,
       taps: [null, null],
-      submitted: false,
       players: names.map((name) => ({ name, results: [], wins: 0 })),
     };
     show("game");
@@ -257,8 +254,7 @@
         el.innerHTML = `
           <p class="c-name"></p>
           <p class="c-avg">${fmt(s.avg)}<small> ms 평균</small></p>
-          <p class="c-meta">${p.wins}승 · 최고 ${fmt(s.best)}ms<br />부정출발 ${s.fouls} · 시간초과 ${s.misses}</p>
-          <p class="c-rank" data-rank></p>`;
+          <p class="c-meta">${p.wins}승 · 최고 ${fmt(s.best)}ms<br />부정출발 ${s.fouls} · 시간초과 ${s.misses}</p>`;
         $(".c-name", el).textContent = `${i === 0 ? "▼" : "▲"} ${p.name}`;
         return el;
       })
@@ -284,96 +280,6 @@
     ths[2].textContent = game.players[1].name;
 
     show("result");
-    submitScores();
-  }
-
-  async function submitScores() {
-    const status = $("#submit-status");
-    if (!game || game.submitted) return;
-    game.submitted = true;
-
-    const eligible = game.players.filter((p) => p.summary.times.length >= 3);
-    const skipped = game.players.filter((p) => p.summary.times.length < 3).map((p) => p.name);
-    if (!eligible.length) {
-      status.textContent = "유효 기록이 3회 미만이라 랭킹에 저장되지 않았어요.";
-      return;
-    }
-
-    status.textContent = "기록 저장 중…";
-    try {
-      const res = await fetch(API, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          players: eligible.map((p) => ({
-            name: p.name,
-            times: p.summary.times.map((t) => Math.round(t * 10) / 10),
-            fouls: p.summary.fouls,
-          })),
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-
-      const cards = $$("#result-cards .card");
-      for (const r of data.results || []) {
-        const idx = game.players.findIndex((p) => p.name === r.name);
-        if (idx < 0) continue;
-        const text = `${r.newBest ? "🎉 개인 최고 기록! " : ""}전체 ${r.rank}위 / ${data.total}명`;
-        $("[data-rank]", cards[idx]).textContent = text;
-      }
-      const notes = [...skipped, ...(data.rejected || []).map((r) => r.name)];
-      status.textContent = notes.length
-        ? `기록 저장 완료 (${notes.join(", ")}: 유효 기록 부족으로 제외)`
-        : "기록이 랭킹에 저장되었어요.";
-    } catch (err) {
-      console.error(err);
-      game.submitted = false;
-      status.innerHTML = "";
-      status.append("기록 저장에 실패했어요. ");
-      const retry = document.createElement("button");
-      retry.type = "button";
-      retry.className = "btn btn-ghost";
-      retry.style.minHeight = "2.2rem";
-      retry.textContent = "다시 시도";
-      retry.addEventListener("click", submitScores);
-      status.append(retry);
-    }
-  }
-
-  // ---------------------------------------------------------------- 랭킹
-  let boardLoading = false;
-
-  async function loadBoard() {
-    if (boardLoading) return;
-    boardLoading = true;
-    const board = $("#board");
-    const status = $("#board-status");
-    status.textContent = "불러오는 중…";
-    try {
-      const res = await fetch(API, { cache: "no-store" });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-      const names = Object.values(loadNames()).map((n) => String(n).toLowerCase());
-      board.replaceChildren(
-        ...data.leaderboard.map((row) => {
-          const li = document.createElement("li");
-          if (names.includes(row.name.toLowerCase())) li.className = "me";
-          li.innerHTML = `<span class="r"></span><span class="n"><b></b><small></small></span><span class="v"></span>`;
-          $(".r", li).textContent = row.rank;
-          $(".n b", li).textContent = row.name;
-          $(".n small", li).textContent = `${row.games}판 · 전체 평균 ${fmt(row.average)}ms`;
-          $(".v", li).innerHTML = `${fmt(row.best)}<small> ms</small>`;
-          return li;
-        })
-      );
-      status.textContent = data.total ? `총 ${data.total}명 참가` : "아직 기록이 없어요. 첫 번째 주인공이 되어보세요!";
-    } catch (err) {
-      console.error(err);
-      status.textContent = "랭킹을 불러오지 못했어요.";
-    } finally {
-      boardLoading = false;
-    }
   }
 
   // ---------------------------------------------------------------- QR
@@ -439,7 +345,6 @@
     if (!game) return show("home");
     startGame(game.players.map((p) => p.name), game.rounds);
   });
-  $("#refresh-board").addEventListener("click", loadBoard);
   $("#print-qr").addEventListener("click", () => window.print());
 
   $$("[data-open]").forEach((b) => b.addEventListener("click", () => show(b.dataset.open)));

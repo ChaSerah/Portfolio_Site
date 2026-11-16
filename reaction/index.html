@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./reaction.css?v=20261116-foul" />
+    <link rel="stylesheet" href="./reaction.css?v=20261116-norank" />
   </head>
   <body>
     <!-- 홈 -->
@@ -43,7 +43,6 @@
         </form>
 
         <div class="home-links">
-          <button class="btn btn-ghost" type="button" data-open="ranking">🏆 랭킹</button>
           <button class="btn btn-ghost" type="button" data-open="qr">QR 공유</button>
         </div>
         <details class="rules">
@@ -51,7 +50,6 @@
           <ul>
             <li>대기 화면(빨간색)에서 누르면 <b>부정출발</b> — 그 라운드는 <b>상대에게 승점</b>이 갑니다.</li>
             <li>초록색 이후 1.5초 안에 누르지 않으면 실패 처리됩니다.</li>
-            <li>유효 기록이 3회 이상이면 <b>평균 반응속도</b>가 서버 랭킹에 저장됩니다.</li>
           </ul>
         </details>
       </div>
@@ -88,26 +86,9 @@
         <h2 id="result-title"></h2>
         <div class="result-cards" id="result-cards"></div>
         <table class="round-table" id="round-table"></table>
-        <p class="submit-status" id="submit-status" role="status"></p>
         <div class="result-actions">
           <button class="btn btn-primary" type="button" id="rematch">다시 대결</button>
-          <button class="btn btn-ghost" type="button" data-open="ranking">🏆 랭킹</button>
           <button class="btn btn-ghost" type="button" data-open="home">처음으로</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- 랭킹 -->
-    <section class="screen screen-ranking" id="ranking" aria-labelledby="ranking-title">
-      <div class="panel">
-        <p class="kicker">LEADERBOARD</p>
-        <h2 id="ranking-title">평균 반응속도 랭킹</h2>
-        <p class="sub">한 판 평균 기준 개인 최고 기록 · 낮을수록 빠름</p>
-        <ol class="board" id="board"></ol>
-        <p class="board-status" id="board-status"></p>
-        <div class="result-actions">
-          <button class="btn btn-ghost" type="button" id="refresh-board">새로고침</button>
-          <button class="btn btn-primary" type="button" data-back>돌아가기</button>
         </div>
       </div>
     </section>
@@ -128,6 +109,6 @@
     </section>
 
     <script src="./vendor/qrcode.js" defer></script>
-    <script src="./reaction.js?v=20261116-foul" defer></script>
+    <script src="./reaction.js?v=20261116-norank" defer></script>
   </body>
 </html>
