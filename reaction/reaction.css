@@ -1,6 +1,6 @@
 :root {
   /* 원래부터 어두운 화면임을 브라우저에 알려서, 휴대폰 다크모드가 색을 임의로 바꾸지 않게 함 */
-  color-scheme: dark;
+  color-scheme: only dark;
   --ink: #f6fbff;
   --muted: rgba(231, 244, 255, 0.68);
   --line: rgba(218, 242, 255, 0.2);
@@ -20,10 +20,28 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* 다크모드를 지원하는 사이트로 인식되도록 명시 (Samsung Internet 등) */
+/* 다크모드를 지원하는 사이트로 인식되도록 실제 다크 테마 규칙을 명시
+   (Samsung Internet은 이 규칙이 있어야 사이트 자체 색을 유지함) */
 @media (prefers-color-scheme: dark) {
   :root {
-    color-scheme: dark;
+    color-scheme: only dark;
+    --ink: #f6fbff;
+    --muted: rgba(231, 244, 255, 0.68);
+    --line: rgba(218, 242, 255, 0.2);
+    --panel: rgba(9, 22, 40, 0.86);
+    --deep: #020711;
+    --aqua: #58d5f2;
+    --p1: #58d5f2;
+    --p2: #ff8fb7;
+    --wait: #3a0d18;
+    --wait-hi: #6e1426;
+    --go: #19d47b;
+    --foul: #f2a43a;
+  }
+
+  body {
+    color: var(--ink);
+    background: radial-gradient(120% 80% at 50% 0%, #0b2440 0%, var(--deep) 60%) fixed, var(--deep);
   }
 }
 
