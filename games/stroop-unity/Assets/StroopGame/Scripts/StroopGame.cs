@@ -37,13 +37,14 @@ namespace StroopMiniGame
         // 테마
         private static readonly Color BgColor = Hex("#F3F0E8");
         private static readonly Color TextDark = Hex("#2B2B2B");
-        private static readonly Color TextSub = Hex("#7A746A");
+        private static readonly Color TextSub = Hex("#4F4A43");
         private static readonly Color CardColor = Color.white;
         private static readonly Color InkBadge = Hex("#2B2B2B");
         private static readonly Color MeaningBadge = Hex("#E8682B");
         private static readonly Color GoodColor = Hex("#2E9E44");
         private static readonly Color BadColor = Hex("#E53935");
         private static readonly Color AnswerBarColor = Hex("#2B2B2B");
+        private static readonly Color Accent = Hex("#D9581E");
 
         // 런타임 상태
         private State state;
@@ -63,10 +64,10 @@ namespace StroopMiniGame
         private RectTransform answerFill;
         private Image answerFillImage;
         private float answerTimeLimit;
-        private Text scoreText, comboText, levelText, timeText;
+        private Text scoreText;
         private Image instructionBadge;
         private Text instructionText, wordText, countdownText, feedbackText;
-        private Text resultScoreText, resultBestText, resultDetailText, titleBestText;
+        private Text resultScoreText, resultBestText, resultDetailText, titleBestText, cheerText;
         private readonly Button[] optionButtons = new Button[StroopGenerator.OptionCount];
         private readonly Text[] optionLabels = new Text[StroopGenerator.OptionCount];
         private Coroutine cardAnim, feedbackAnim;
@@ -124,7 +125,7 @@ namespace StroopMiniGame
             titlePanel.gameObject.SetActive(true);
             gamePanel.gameObject.SetActive(false);
             resultPanel.gameObject.SetActive(false);
-            titleBestText.text = bestScore > 0 ? $"최고 기록  {bestScore:N0}" : "";
+            titleBestText.text = bestScore > 0 ? $"최고 점수 {bestScore:N0}" : "";
         }
 
         public void StartGame()
@@ -172,10 +173,6 @@ namespace StroopMiniGame
         {
             question = generator.Next(level, palette.Count);
 
-            // 지시문
-            bool ink = question.type == QuestionType.InkColor;
-            instructionBadge.color = ink ? InkBadge : MeaningBadge;
-            instructionText.text = ink ? "글자의 <b>색깔</b>을 고르세요" : "글자의 <b>뜻</b>을 고르세요";
             answerTimeLimit = LevelSettings.For(level, palette.Count).answerTimeLimit;
             answerFill.anchorMax = Vector2.one;
             answerFillImage.color = AnswerBarColor;
@@ -267,15 +264,15 @@ namespace StroopMiniGame
             float accuracy = total > 0 ? (float)correct / total * 100f : 0f;
             float avgRt = correct > 0 ? reactionSum / correct : 0f;
 
+            cheerText.text = accuracy >= 90f ? "아주 잘하셨어요!" : accuracy >= 70f ? "잘하셨어요!" : "꾸준히 하면 좋아져요!";
             resultScoreText.text = $"{score:N0}";
             resultBestText.text = newBest && score > 0
-                ? $"<color={StroopUIFactory.ToHex(MeaningBadge)}>신기록!</color>"
-                : $"최고 기록  {bestScore:N0}";
+                ? $"<color={StroopUIFactory.ToHex(Accent)}>최고 점수 달성!</color>"
+                : $"최고 점수 {bestScore:N0}";
             resultDetailText.text =
-                $"정답  {correct} / {total}\n" +
-                $"정확도  {accuracy:0}%\n" +
-                $"평균 반응 속도  {avgRt:0.00}초\n" +
-                $"최대 콤보  {maxCombo}";
+                $"맞힌 문제   <b>{correct}개</b>\n" +
+                $"정확도   <b>{accuracy:0}%</b>\n" +
+                $"평균 속도   <b>{(correct > 0 ? avgRt.ToString("0.0") + "초" : "-")}</b>";
 
             gamePanel.gameObject.SetActive(false);
             resultPanel.gameObject.SetActive(true);
@@ -289,11 +286,7 @@ namespace StroopMiniGame
             float ratio = roundDuration > 0f ? Mathf.Clamp01(timeLeft / roundDuration) : 0f;
             timeFill.anchorMax = new Vector2(ratio, 1f);
             timeFillImage.color = ratio > 0.2f ? GoodColor : BadColor;
-            timeText.text = Mathf.CeilToInt(timeLeft).ToString();
-
-            scoreText.text = $"{score:N0}";
-            comboText.text = combo >= 2 ? $"{combo} COMBO" : "";
-            levelText.text = $"Lv.{level}";
+            scoreText.text = $"<size=48><color={StroopUIFactory.ToHex(TextSub)}>점수</color></size>  {score:N0}";
         }
 
         private void ShowFeedback(bool good)
@@ -371,94 +364,93 @@ namespace StroopMiniGame
             BuildResultPanel(root);
         }
 
+        // 고령자용 레이아웃: 글자는 크게, 화면 요소는 최소로 (기준 해상도 1080x1920)
         private void BuildTitlePanel(Transform root)
         {
             titlePanel = StroopUIFactory.CreateRect("TitlePanel", root).Stretch();
 
             // 타이틀 자체를 스트룹 스타일로
             var title = StroopUIFactory.CreateText("Title", titlePanel, font,
-                $"<color={Hx(0)}>색</color><color={Hx(1)}>깔</color> <color={Hx(2)}>헷</color><color={Hx(3)}>갈</color><color={Hx(Mathf.Min(4, palette.Count - 1))}>림</color>",
-                150, TextDark, TextAnchor.MiddleCenter, FontStyle.Bold);
-            title.rectTransform.Anchor(0, 0.66f, 1, 0.8f);
+                $"<color={Hx(0)}>색</color><color={Hx(1)}>깔</color>\n<color={Hx(2)}>헷</color><color={Hx(3)}>갈</color><color={Hx(1)}>림</color>",
+                200, TextDark, TextAnchor.MiddleCenter, FontStyle.Bold);
+            title.lineSpacing = 0.95f;
+            title.rectTransform.Anchor(0, 0.7f, 1, 0.92f);
 
-            var sub = StroopUIFactory.CreateText("Subtitle", titlePanel, font, "STROOP TEST", 48, TextSub, TextAnchor.MiddleCenter, FontStyle.Bold);
-            sub.rectTransform.Anchor(0, 0.6f, 1, 0.65f);
+            var howto = StroopUIFactory.CreateText("HowTo", titlePanel, font,
+                $"글자를 읽지 말고\n글자의 <color={StroopUIFactory.ToHex(Accent)}>색깔</color>을 누르세요",
+                64, TextDark, TextAnchor.MiddleCenter, FontStyle.Bold);
+            howto.lineSpacing = 1.2f;
+            howto.rectTransform.Anchor(0.04f, 0.58f, 0.96f, 0.69f);
 
-            var rules = StroopUIFactory.CreateText("Rules", titlePanel, font,
-                "글자를 읽지 말고\n<b>글자가 칠해진 색깔</b>을 고르세요!\n\n" +
-                "레벨이 오를수록 답할 시간이 줄어요\n\n" +
-                $"제한 시간 {roundDuration:0}초 · 오답 시 -{wrongPenaltySeconds:0.#}초",
-                46, TextDark);
-            rules.lineSpacing = 1.15f;
-            rules.rectTransform.Anchor(0.08f, 0.36f, 0.92f, 0.56f);
+            // 예시 카드: 파란색 "빨강" → 정답은 파랑
+            var example = StroopUIFactory.CreateImage("Example", titlePanel, CardColor);
+            example.rectTransform.Anchor(0.08f, 0.38f, 0.92f, 0.56f);
+            var exWord = StroopUIFactory.CreateText("ExampleWord", example.transform, font, palette[0].name, 150, palette[1].color, TextAnchor.MiddleCenter, FontStyle.Bold);
+            exWord.rectTransform.Anchor(0, 0.38f, 1, 1);
+            var exAnswer = StroopUIFactory.CreateText("ExampleAnswer", example.transform, font,
+                $"정답은 <color={Hx(1)}><b>{palette[1].name}</b></color>", 64, TextDark);
+            exAnswer.rectTransform.Anchor(0, 0.05f, 1, 0.38f);
 
-            var start = StroopUIFactory.CreateButton("StartButton", titlePanel, font, "시작하기", 64, InkBadge, Color.white, out _);
+            var start = StroopUIFactory.CreateButton("StartButton", titlePanel, font, "시작하기", 80, InkBadge, Color.white, out _);
             start.colors = DarkButtonColors(start.colors);
-            ((RectTransform)start.transform).Anchor(0.18f, 0.2f, 0.82f, 0.28f);
+            ((RectTransform)start.transform).Anchor(0.08f, 0.22f, 0.92f, 0.32f);
             start.onClick.AddListener(StartGame);
 
-            titleBestText = StroopUIFactory.CreateText("Best", titlePanel, font, "", 40, TextSub);
-            titleBestText.rectTransform.Anchor(0, 0.13f, 1, 0.18f);
+            titleBestText = StroopUIFactory.CreateText("Best", titlePanel, font, "", 56, TextSub, TextAnchor.MiddleCenter, FontStyle.Bold);
+            titleBestText.rectTransform.Anchor(0, 0.14f, 1, 0.2f);
         }
 
         private void BuildGamePanel(Transform root)
         {
             gamePanel = StroopUIFactory.CreateRect("GamePanel", root).Stretch();
 
-            // 상단 HUD
-            var hud = StroopUIFactory.CreateRect("HUD", gamePanel).Anchor(0.06f, 0.88f, 0.94f, 0.96f);
-            levelText = StroopUIFactory.CreateText("Level", hud, font, "Lv.1", 44, TextSub, TextAnchor.MiddleLeft, FontStyle.Bold);
-            levelText.rectTransform.Anchor(0, 0, 0.3f, 1);
-            scoreText = StroopUIFactory.CreateText("Score", hud, font, "0", 84, TextDark, TextAnchor.MiddleCenter, FontStyle.Bold);
-            scoreText.rectTransform.Anchor(0.25f, 0, 0.75f, 1);
-            timeText = StroopUIFactory.CreateText("Time", hud, font, "", 44, TextSub, TextAnchor.MiddleRight, FontStyle.Bold);
-            timeText.rectTransform.Anchor(0.7f, 0, 1, 1);
-
-            // 시간 바
-            var barBg = StroopUIFactory.CreateImage("TimeBarBg", gamePanel, Hex("#DDD7CB"));
-            barBg.rectTransform.Anchor(0.06f, 0.865f, 0.94f, 0.877f);
+            // 전체 남은 시간 바
+            var barBg = StroopUIFactory.CreateImage("TimeBarBg", gamePanel, Hex("#D9D2C4"));
+            barBg.rectTransform.Anchor(0.05f, 0.955f, 0.95f, 0.972f);
             var fill = StroopUIFactory.CreateImage("TimeBarFill", barBg.transform, GoodColor);
             timeFillImage = fill;
             timeFill = fill.rectTransform.Stretch();
 
-            comboText = StroopUIFactory.CreateText("Combo", gamePanel, font, "", 46, MeaningBadge, TextAnchor.MiddleCenter, FontStyle.Bold);
-            comboText.rectTransform.Anchor(0, 0.81f, 1, 0.85f);
+            // 점수
+            scoreText = StroopUIFactory.CreateText("Score", gamePanel, font, "0", 100, TextDark, TextAnchor.MiddleCenter, FontStyle.Bold);
+            scoreText.rectTransform.Anchor(0, 0.88f, 1, 0.945f);
 
-            // 지시문 뱃지
-            instructionBadge = StroopUIFactory.CreateImage("InstructionBadge", gamePanel, InkBadge);
-            instructionBadge.rectTransform.Anchor(0.14f, 0.72f, 0.86f, 0.79f);
-            instructionText = StroopUIFactory.CreateText("Instruction", instructionBadge.transform, font, "", 56, Color.white);
+            // 지시문 (항상 같은 문구)
+            instructionBadge = StroopUIFactory.CreateImage("Instruction", gamePanel, Color.clear);
+            instructionBadge.rectTransform.Anchor(0.04f, 0.82f, 0.96f, 0.875f);
+            instructionText = StroopUIFactory.CreateText("InstructionText", instructionBadge.transform, font,
+                $"글자의 <color={StroopUIFactory.ToHex(Accent)}>색깔</color>을 누르세요", 66, TextDark, TextAnchor.MiddleCenter, FontStyle.Bold);
             instructionText.rectTransform.Stretch();
 
             // 단어 카드
-            var cardHolder = StroopUIFactory.CreateRect("CardHolder", gamePanel).Anchor(0.08f, 0.44f, 0.92f, 0.69f);
-
-            // 문제당 남은 시간 바 (카드 아래)
-            var answerBg = StroopUIFactory.CreateImage("AnswerBarBg", gamePanel, Hex("#DDD7CB"));
-            answerBg.rectTransform.Anchor(0.08f, 0.412f, 0.92f, 0.424f);
-            answerFillImage = StroopUIFactory.CreateImage("AnswerBarFill", answerBg.transform, AnswerBarColor);
-            answerFill = answerFillImage.rectTransform.Stretch();
+            var cardHolder = StroopUIFactory.CreateRect("CardHolder", gamePanel).Anchor(0.05f, 0.47f, 0.95f, 0.81f);
             var card = StroopUIFactory.CreateImage("WordCard", cardHolder, CardColor);
             wordCard = card.rectTransform.Stretch();
             var cardShadow = card.gameObject.AddComponent<Shadow>();
             cardShadow.effectColor = new Color(0, 0, 0, 0.12f);
             cardShadow.effectDistance = new Vector2(0, -12);
-            wordText = StroopUIFactory.CreateText("Word", wordCard, font, "", 210, TextDark, TextAnchor.MiddleCenter, FontStyle.Bold);
+            wordText = StroopUIFactory.CreateText("Word", wordCard, font, "", 300, TextDark, TextAnchor.MiddleCenter, FontStyle.Bold);
             wordText.rectTransform.Stretch();
 
-            // 피드백 O/X
-            feedbackText = StroopUIFactory.CreateText("Feedback", gamePanel, font, "", 420, GoodColor, TextAnchor.MiddleCenter, FontStyle.Bold);
-            feedbackText.rectTransform.Anchor(0, 0.44f, 1, 0.69f);
+            // 문제당 남은 시간 바 (카드 아래)
+            var answerBg = StroopUIFactory.CreateImage("AnswerBarBg", gamePanel, Hex("#D9D2C4"));
+            answerBg.rectTransform.Anchor(0.05f, 0.43f, 0.95f, 0.449f);
+            answerFillImage = StroopUIFactory.CreateImage("AnswerBarFill", answerBg.transform, AnswerBarColor);
+            answerFill = answerFillImage.rectTransform.Stretch();
 
-            // 보기 버튼 2x2
-            var grid = StroopUIFactory.CreateRect("Options", gamePanel).Anchor(0.06f, 0.06f, 0.94f, 0.38f);
+            // 피드백 O/X
+            feedbackText = StroopUIFactory.CreateText("Feedback", gamePanel, font, "", 460, GoodColor, TextAnchor.MiddleCenter, FontStyle.Bold);
+            feedbackText.rectTransform.Anchor(0, 0.47f, 1, 0.81f);
+
+            // 보기 버튼 2x2 (위치 고정)
+            var grid = StroopUIFactory.CreateRect("Options", gamePanel).Anchor(0.04f, 0.04f, 0.96f, 0.41f);
             for (int i = 0; i < optionButtons.Length; i++)
             {
                 int col = i % 2, row = i / 2;
-                float x0 = col * 0.5f + 0.02f, x1 = col * 0.5f + 0.48f;
-                float y1 = 1f - row * 0.5f - 0.03f, y0 = 1f - row * 0.5f - 0.47f;
+                float x0 = col * 0.5f + 0.015f, x1 = col * 0.5f + 0.485f;
+                float y1 = 1f - row * 0.5f - 0.025f, y0 = 1f - row * 0.5f - 0.475f;
 
-                var btn = StroopUIFactory.CreateButton($"Option{i}", grid, font, "", 88, Color.white, TextDark, out Text label);
+                var btn = StroopUIFactory.CreateButton($"Option{i}", grid, font, "", 110, Color.white, TextDark, out Text label);
                 ((RectTransform)btn.transform).Anchor(x0, y0, x1, y1);
                 int captured = i;
                 btn.onClick.AddListener(() => OnOptionClicked(captured));
@@ -467,8 +459,8 @@ namespace StroopMiniGame
             }
 
             // 카운트다운
-            countdownText = StroopUIFactory.CreateText("Countdown", gamePanel, font, "", 320, TextDark, TextAnchor.MiddleCenter, FontStyle.Bold);
-            countdownText.rectTransform.Anchor(0, 0.44f, 1, 0.69f);
+            countdownText = StroopUIFactory.CreateText("Countdown", gamePanel, font, "", 360, TextDark, TextAnchor.MiddleCenter, FontStyle.Bold);
+            countdownText.rectTransform.Anchor(0, 0.47f, 1, 0.81f);
             countdownText.gameObject.SetActive(false);
         }
 
@@ -476,28 +468,31 @@ namespace StroopMiniGame
         {
             resultPanel = StroopUIFactory.CreateRect("ResultPanel", root).Stretch();
 
-            var head = StroopUIFactory.CreateText("Head", resultPanel, font, "결과", 64, TextSub, TextAnchor.MiddleCenter, FontStyle.Bold);
-            head.rectTransform.Anchor(0, 0.8f, 1, 0.86f);
+            cheerText = StroopUIFactory.CreateText("Cheer", resultPanel, font, "", 84, TextDark, TextAnchor.MiddleCenter, FontStyle.Bold);
+            cheerText.rectTransform.Anchor(0, 0.84f, 1, 0.92f);
 
-            resultScoreText = StroopUIFactory.CreateText("Score", resultPanel, font, "0", 200, TextDark, TextAnchor.MiddleCenter, FontStyle.Bold);
-            resultScoreText.rectTransform.Anchor(0, 0.66f, 1, 0.8f);
+            var label = StroopUIFactory.CreateText("ScoreLabel", resultPanel, font, "점수", 60, TextSub, TextAnchor.MiddleCenter, FontStyle.Bold);
+            label.rectTransform.Anchor(0, 0.78f, 1, 0.83f);
 
-            resultBestText = StroopUIFactory.CreateText("Best", resultPanel, font, "", 50, TextSub, TextAnchor.MiddleCenter, FontStyle.Bold);
+            resultScoreText = StroopUIFactory.CreateText("Score", resultPanel, font, "0", 230, TextDark, TextAnchor.MiddleCenter, FontStyle.Bold);
+            resultScoreText.rectTransform.Anchor(0, 0.66f, 1, 0.78f);
+
+            resultBestText = StroopUIFactory.CreateText("Best", resultPanel, font, "", 56, TextSub, TextAnchor.MiddleCenter, FontStyle.Bold);
             resultBestText.rectTransform.Anchor(0, 0.61f, 1, 0.66f);
 
             var box = StroopUIFactory.CreateImage("DetailBox", resultPanel, CardColor);
-            box.rectTransform.Anchor(0.12f, 0.36f, 0.88f, 0.58f);
-            resultDetailText = StroopUIFactory.CreateText("Detail", box.transform, font, "", 50, TextDark);
-            resultDetailText.lineSpacing = 1.3f;
+            box.rectTransform.Anchor(0.08f, 0.38f, 0.92f, 0.59f);
+            resultDetailText = StroopUIFactory.CreateText("Detail", box.transform, font, "", 64, TextDark);
+            resultDetailText.lineSpacing = 1.35f;
             resultDetailText.rectTransform.Stretch();
 
-            var retry = StroopUIFactory.CreateButton("RetryButton", resultPanel, font, "다시 하기", 64, InkBadge, Color.white, out _);
+            var retry = StroopUIFactory.CreateButton("RetryButton", resultPanel, font, "다시 하기", 80, InkBadge, Color.white, out _);
             retry.colors = DarkButtonColors(retry.colors);
-            ((RectTransform)retry.transform).Anchor(0.18f, 0.2f, 0.82f, 0.28f);
+            ((RectTransform)retry.transform).Anchor(0.08f, 0.2f, 0.92f, 0.3f);
             retry.onClick.AddListener(StartGame);
 
-            var home = StroopUIFactory.CreateButton("HomeButton", resultPanel, font, "처음으로", 52, Color.white, TextDark, out _);
-            ((RectTransform)home.transform).Anchor(0.3f, 0.11f, 0.7f, 0.17f);
+            var home = StroopUIFactory.CreateButton("HomeButton", resultPanel, font, "처음으로", 64, Color.white, TextDark, out _);
+            ((RectTransform)home.transform).Anchor(0.08f, 0.08f, 0.92f, 0.17f);
             home.onClick.AddListener(ShowTitle);
         }
 
