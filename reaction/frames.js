@@ -264,6 +264,9 @@
     for (let k = renders.length - 1; k >= 0; k--) renders[k]();
   }
 
+  // QR 포스터에서 같은 패널 모양을 쓰기 위해 공개
+  window.RD_FX = { drawPanel, stripes };
+
   scan();
   document.documentElement.classList.add("has-fx");
   renderAll();

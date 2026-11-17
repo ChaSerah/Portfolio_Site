@@ -323,7 +323,38 @@
 
   // ---------------------------------------------------------------- QR
   function playUrl() {
-    return location.origin + location.pathname;
+    return window.GAME_CONFIG?.share?.url || location.origin + location.pathname;
+  }
+
+  // 흰 판(모서리 깎음) 위에 QR 코드를 그림. (x, y) 위치에 size 크기
+  // canvas로 그리는 이유: 삼성 인터넷 다크모드가 흰 바탕을 뒤집어 QR이 안 찍히는 일을 막음
+  function drawQrPlate(ctx, url, x, y, size) {
+    const qr = window.qrcode(0, "M");
+    qr.addData(url);
+    qr.make();
+    const n = qr.getModuleCount();
+    const cut = size * 0.057;
+    const margin = size * 0.067;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.moveTo(cut, 0);
+    ctx.lineTo(size, 0);
+    ctx.lineTo(size, size - cut);
+    ctx.lineTo(size - cut, size);
+    ctx.lineTo(0, size);
+    ctx.lineTo(0, cut);
+    ctx.closePath();
+    ctx.fill();
+    const cell = (size - margin * 2) / n;
+    ctx.fillStyle = "#000000";
+    for (let r = 0; r < n; r++) {
+      for (let k = 0; k < n; k++) {
+        if (qr.isDark(r, k)) ctx.fillRect(Math.floor(margin + k * cell), Math.floor(margin + r * cell), Math.ceil(cell), Math.ceil(cell));
+      }
+    }
+    ctx.restore();
   }
 
   function renderQr() {
@@ -333,36 +364,11 @@
     if (box.dataset.url === url) return;
     box.replaceChildren();
     if (typeof window.qrcode === "function") {
-      const qr = window.qrcode(0, "M");
-      qr.addData(url);
-      qr.make();
-      // canvas로 그림: 삼성 인터넷 다크모드가 흰 바탕을 뒤집어 QR이 안 찍히는 일을 막음
-      const n = qr.getModuleCount();
-      const size = 600;
-      const cut = 34;
-      const margin = 40;
       const c = document.createElement("canvas");
-      c.width = c.height = size;
+      c.width = c.height = 600;
       c.setAttribute("role", "img");
       c.setAttribute("aria-label", "게임 주소 QR 코드");
-      const x = c.getContext("2d");
-      x.fillStyle = "#ffffff";
-      x.beginPath();
-      x.moveTo(cut, 0);
-      x.lineTo(size, 0);
-      x.lineTo(size, size - cut);
-      x.lineTo(size - cut, size);
-      x.lineTo(0, size);
-      x.lineTo(0, cut);
-      x.closePath();
-      x.fill();
-      const cell = (size - margin * 2) / n;
-      x.fillStyle = "#000000";
-      for (let r = 0; r < n; r++) {
-        for (let k = 0; k < n; k++) {
-          if (qr.isDark(r, k)) x.fillRect(Math.floor(margin + k * cell), Math.floor(margin + r * cell), Math.ceil(cell), Math.ceil(cell));
-        }
-      }
+      drawQrPlate(c.getContext("2d"), url, 0, 0, 600);
       box.append(c);
       box.dataset.url = url;
     } else {
@@ -370,6 +376,126 @@
       box.style.color = "#000";
     }
   }
+
+  // ---------------------------------------------------------------- QR 포스터 이미지
+  // "이미지 저장" 버튼: 회로 배경 + 제목 + QR + 주소가 들어간 세로 포스터(1080×1500 PNG)
+  const POSTER_W = 1080;
+  const POSTER_H = 1500;
+
+  async function buildPoster() {
+    const COL = window.GAME_CONFIG?.colors ?? {};
+    const AQUA = COL.p1 ?? "#58d5f2";
+    const VIOLET = COL.violet ?? "#a77bff";
+    const url = playUrl();
+    await Promise.all([
+      document.fonts.load('700 96px "IBM Plex Sans KR"', "반응속도대결"),
+      document.fonts.load('700 30px "Chakra Petch"', "SCAN"),
+      document.fonts.load('500 28px "JetBrains Mono"', "https"),
+    ]).catch(() => {});
+
+    const c = document.createElement("canvas");
+    c.width = POSTER_W;
+    c.height = POSTER_H;
+    const x = c.getContext("2d");
+
+    // 배경
+    x.fillStyle = "#020711";
+    x.fillRect(0, 0, POSTER_W, POSTER_H);
+    const glow = x.createRadialGradient(POSTER_W / 2, 0, 0, POSTER_W / 2, 0, POSTER_H * 0.75);
+    glow.addColorStop(0, "#0b2440");
+    glow.addColorStop(1, "rgba(2, 7, 17, 0)");
+    x.fillStyle = glow;
+    x.fillRect(0, 0, POSTER_W, POSTER_H);
+    if (window.RD_CIRCUIT) {
+      x.save();
+      x.globalAlpha = 0.6;
+      window.RD_CIRCUIT.paintTo(x, POSTER_W, POSTER_H);
+      x.restore();
+    }
+
+    // 가운데 패널 (화면과 같은 C 스타일)
+    const px = 110;
+    const py = 230;
+    const pw = POSTER_W - px * 2;
+    const ph = 1040;
+    if (window.RD_FX) {
+      x.save();
+      x.translate(px, py);
+      x.scale(2, 2);
+      window.RD_FX.drawPanel(x, pw / 2, ph / 2);
+      x.restore();
+    }
+
+    const text = (str, y, font, color, spacing = "0px") => {
+      x.font = font;
+      if ("letterSpacing" in x) x.letterSpacing = spacing;
+      x.fillStyle = color;
+      x.textAlign = "center";
+      x.textBaseline = "alphabetic";
+      x.fillText(str, POSTER_W / 2, y);
+    };
+    const display = '"Chakra Petch", "IBM Plex Sans KR", sans-serif';
+    const body = '"IBM Plex Sans KR", sans-serif';
+    text("SCAN TO PLAY", py + 100, `700 30px ${display}`, AQUA, "10px");
+    text("반응속도 대결", py + 215, `700 92px ${body}`, "#f6fbff", "-2px");
+    text("휴대폰 한 대로, 둘이 마주 보고 대결!", py + 280, `500 32px ${body}`, "rgba(231, 244, 255, 0.72)");
+
+    // QR + 바깥 그라데이션 테두리
+    const qs = 520;
+    const qx = (POSTER_W - qs) / 2;
+    const qy = py + 330;
+    const g = x.createLinearGradient(qx, 0, qx + qs, 0);
+    g.addColorStop(0, AQUA);
+    g.addColorStop(1, VIOLET);
+    const o = 16;
+    const cut = 40;
+    x.save();
+    x.shadowColor = "rgba(127, 140, 255, 0.6)";
+    x.shadowBlur = 24;
+    x.strokeStyle = g;
+    x.lineWidth = 3;
+    x.beginPath();
+    x.moveTo(qx - o + cut, qy - o);
+    x.lineTo(qx + qs + o, qy - o);
+    x.lineTo(qx + qs + o, qy + qs + o - cut);
+    x.lineTo(qx + qs + o - cut, qy + qs + o);
+    x.lineTo(qx - o, qy + qs + o);
+    x.lineTo(qx - o, qy - o + cut);
+    x.closePath();
+    x.stroke();
+    x.restore();
+    if (typeof window.qrcode === "function") drawQrPlate(x, url, qx, qy, qs);
+
+    text(url.replace(/^https?:\/\//, ""), qy + qs + 90, `500 28px "JetBrains Mono", monospace`, AQUA);
+    text("1 PHONE · 2 PLAYERS", qy + qs + 150, `700 24px ${display}`, VIOLET, "8px");
+    return c;
+  }
+
+  async function savePoster() {
+    const btn = $("#save-qr");
+    btn.disabled = true;
+    try {
+      const c = await buildPoster();
+      const blob = await new Promise((r) => c.toBlob(r, "image/png"));
+      const name = window.GAME_CONFIG?.share?.posterFileName || "reaction-duel-qr.png";
+      const file = new File([blob], name, { type: "image/png" });
+      // 휴대폰: 공유 시트(사진 저장 가능), PC: 바로 다운로드
+      if (navigator.maxTouchPoints > 0 && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "반응속도 대결 QR" }).catch(() => {});
+      } else {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = name;
+        document.body.append(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      }
+    } finally {
+      btn.disabled = false;
+    }
+  }
+  window.RD_buildPoster = buildPoster; // 포스터를 따로 만들 때(테스트·내보내기) 사용
 
   // ---------------------------------------------------------------- 이벤트
   const form = $("#setup-form");
@@ -408,6 +534,7 @@
     startGame(game.players.map((p) => p.name), game.rounds);
   });
   $("#print-qr").addEventListener("click", () => window.print());
+  $("#save-qr").addEventListener("click", savePoster);
 
   $$("[data-open]").forEach((b) => b.addEventListener("click", () => show(b.dataset.open)));
   $$("[data-back]").forEach((b) =>

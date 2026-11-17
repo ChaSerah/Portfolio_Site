@@ -205,6 +205,19 @@
     }
   }
 
+  // QR 포스터 등 다른 canvas에 같은 회로를 그릴 때 사용 (w×h 크기, 위 묶음은 위·아래 묶음은 아래에 붙임)
+  window.RD_CIRCUIT = {
+    paintTo(c, w, h) {
+      const s = w / W;
+      for (const bottom of [false, true]) {
+        c.save();
+        c.setTransform(s, 0, 0, s, 0, bottom ? h - H * s : 0);
+        paint(c, bottom);
+        c.restore();
+      }
+    },
+  };
+
   // ---- 빛 펄스 (광섬유를 따라 흐르는 빛) ----
   const pulses = [];
   const flashes = [];

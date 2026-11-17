@@ -34,6 +34,8 @@ reaction/
 | 플레이어 색, 신호(초록) 색, 대기 화면 색, 회로 색 | `config.js` → `colors` |
 | 대기 시간, 신호 후 제한 시간, 부정출발 기준, 카운트다운 | `config.js` → `timing` |
 | 배경 빛 개수 · 속도 · 회로 진하기 | `config.js` → `circuit` |
+| QR·포스터에 넣을 주소, 저장 파일 이름 | `config.js` → `share` |
+| QR 포스터 이미지 디자인 ("이미지 저장" 버튼) | `reaction.js` 의 `buildPoster` 함수 |
 | 제목, 안내 문구, 규칙 설명, 버튼 이름 | `index.html` |
 | "기다리세요…", "터치!", "부정출발!", "승리!" 같은 게임 중 문구 | `reaction.js` (`startRound`, `foul`, `finishRound` 함수) |
 | 라운드 선택지 (3 · 5 · 7) | `index.html` 의 `.rounds` 부분 (기본 선택은 `checked`) |
