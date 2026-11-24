@@ -502,16 +502,10 @@
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    const clean = (v) => v.replace(/\s+/g, " ").trim().slice(0, 12);
-    const p1 = clean($("#name-p1").value);
-    const p2 = clean($("#name-p2").value);
-    const err = $("#form-error");
-    if (!p1 || !p2) return (err.textContent = "두 플레이어의 닉네임을 입력해주세요.");
-    if (p1.toLowerCase() === p2.toLowerCase()) return (err.textContent = "서로 다른 닉네임을 사용해주세요.");
-    err.textContent = "";
+    // 닉네임 입력 없이 플레이어 1(아래쪽) · 플레이어 2(위쪽)로 표시
     document.activeElement?.blur();
     const rounds = Number(new FormData(form).get("rounds")) || 5;
-    startGame([p1, p2], rounds);
+    startGame(["플레이어 1", "플레이어 2"], rounds);
   });
 
   halves.forEach((h, i) => {
