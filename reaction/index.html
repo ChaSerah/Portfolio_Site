@@ -15,9 +15,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./reaction.css?v=20261124-noname" />
+    <link rel="stylesheet" href="./reaction.css?v=20261117-poster" />
     <!-- 색·시간 설정 (팀 편집용) -->
-    <script src="./config.js?v=20261124-noname"></script>
+    <script src="./config.js?v=20261117-poster"></script>
   </head>
   <body>
     <!-- 홈 -->
@@ -28,6 +28,20 @@
         <p class="lead">휴대폰을 테이블에 놓고 마주 앉으세요.<br />화면이 <b class="go-text">초록색</b>으로 바뀌는 순간, 내 쪽 화면을 먼저 터치!</p>
 
         <form class="setup" id="setup-form" autocomplete="off">
+          <label class="field field-p2">
+            <span>위쪽 플레이어</span>
+            <div class="inp p2">
+              <input id="name-p2" name="p2" maxlength="12" placeholder="닉네임 입력" required />
+              <b class="tag" aria-hidden="true">P2</b>
+            </div>
+          </label>
+          <label class="field field-p1">
+            <span>아래쪽 플레이어</span>
+            <div class="inp p1">
+              <input id="name-p1" name="p1" maxlength="12" placeholder="닉네임 입력" required />
+              <b class="tag" aria-hidden="true">P1</b>
+            </div>
+          </label>
           <div class="rounds" role="radiogroup" aria-label="라운드 수">
             <span>라운드</span>
             <label><input type="radio" name="rounds" value="3" /><i>3</i></label>
@@ -111,10 +125,10 @@
       </div>
     </section>
 
-    <script src="./circuit.js?v=20261124-noname" defer></script>
-    <script src="./gamefx.js?v=20261124-noname" defer></script>
-    <script src="./frames.js?v=20261124-noname" defer></script>
+    <script src="./circuit.js?v=20261117-poster" defer></script>
+    <script src="./gamefx.js?v=20261117-poster" defer></script>
+    <script src="./frames.js?v=20261117-poster" defer></script>
     <script src="./vendor/qrcode.js" defer></script>
-    <script src="./reaction.js?v=20261124-noname" defer></script>
+    <script src="./reaction.js?v=20261117-poster" defer></script>
   </body>
 </html>
